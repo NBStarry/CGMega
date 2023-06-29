@@ -1,0 +1,34 @@
+Display: False
+batch_size: 256
+cv_folds: 10
+data_dir: data/Breast_Cancer_Matrix
+drop_neg: 0.5
+drop_rate: 0.4
+gpu: 3
+graph: ppi
+heads: 3
+hic: True
+hic_drop_rate: 0
+hic_norm: log
+hic_reduce: svd
+hic_reduce_dim: 5
+hic_type: ice
+hidden_channels: 128
+lr: 0.001
+load_data: True
+log_dir: log
+model: GATRes
+neighbors: [-1, -1]
+num_epochs: 500
+ppi: CPDB
+ppi_attn_drop: 0.1
+ppi_drop_rate: 0
+project: CGMega
+random_seed: 42
+repeat: 1
+resolution: 10KB
+reverse: False
+sample_rate : 1.0
+stable : True
+out_dir: outs
+wandb: False
