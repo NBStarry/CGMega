@@ -131,13 +131,7 @@ This section demonstrates the GAT-based model architecture of CGMega and how to 
 
 ### CGMega framework
 
-#### image 1
-
-<div align="center"><img width="50%" src="https://github.com/NBStarry/CGMega/tree/main/img/model_architecture.png"/></div>
-
-#### image 2
-
-<div align="center"><img width="50%" src="https://github.com/NBStarry/CGMega/tree/main/img/demo.png"/></div>
+![image](https://github.com/NBStarry/CGMega/blob/main/img/model_architecture.png)
 
 ---
 
@@ -192,7 +186,7 @@ According to the feature importance scores calculated by GNNExplainer, we define
 In detail, for a given gene, among its features from ATAC, CTCF, H3K4me3 and H3K27ac, SNVs, CNVs and Hi-C, if a feature is assigned with importance score as 10 times higher than the minimum score,it will be referred to as the RF of this gene.
 A graphic illustration is shown as below:
 
-<div align="center"><img width="50%" src="https://github.com/NBStarry/CGMega/tree/main/img/RF_calculation.png"/></div>
+![image](https://github.com/NBStarry/CGMega/blob/main/img/RF_calculation.png)
 
 #### 3. explore the relationships between different gene modules
 
@@ -204,7 +198,7 @@ In brief, BRCA1, as a pleiotropic DDR protein working in broad stages of DNA dam
 In contrast, BRCA2, as the mediator of the core mechanism of homologous recombination (HR), was connected with other genes via ROCK2, an important gene that directly mediates HR repair.
 Moreover, SNV was the RF for both BRCA1 and BRCA2. We also observed a high-order gene module combined from BRCA1 gene module and BRCA2 gene module through three shared genes including TP53, SMAD3 and XPO1.
 
-<div align="center"><img width="50%" src="https://github.com/NBStarry/CGMega/tree/main/img/example.png"/></div>
+![image](https://github.com/NBStarry/CGMega/blob/main/img/example.png)
 
 ## Documentation
 CGMega documentation is available through [Documentation](https://sunyolo.github.io/CGMega.github.io/).
