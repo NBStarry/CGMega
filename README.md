@@ -214,10 +214,3 @@ See [Documentation-Updates]()
 Add neoloopfinder processing script batch_neoloop.sh. \
 Cpu option added to training device. \
 Add necessary images.
-
-## Environment
-conda create -n cgmega python=3.8
-source activate cgmega
-pip install torch==1.12.1+cu113 --extra-index-url https://download.pytorch.org/whl/cu113
-pip install torch_geometric
-pip install pandas transformers wandb
