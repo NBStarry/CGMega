@@ -539,7 +539,7 @@ def cv_train(args, configs, disturb=None, toy=False):
             ckpt = ckpt_path + '/0.8837_0.9570_23.pkl'
     log_name = configs['log_name']
     num_folds = configs["cv_folds"]
-    dataset = [get_toy_example(configs)] if toy else get_data(configs=configs, stable=configs["stable"]) if disturb is None else get_data(configs=configs, stable=configs["stable"], disturb_list=disturb)
+    dataset = get_data(configs=configs, stable=configs["stable"]) if disturb is None else get_data(configs=configs, stable=configs["stable"], disturb_list=disturb)
     if 'SVM' in configs['model']:
         train_SVM(configs, dataset)
         return
@@ -595,8 +595,7 @@ def cv_train(args, configs, disturb=None, toy=False):
 
 
 def predict_all(args, configs):
-    dataset = get_data(configs=configs) if not args.toy else [
-        get_toy_example(configs)]
+    dataset = get_data(configs=configs)
     num_folds = configs["cv_folds"]
     ckpt_path = "./predict/models/MCF7_Hi-C/" if not args.patient else f"./predict/models/AML/{configs['patient']}"
     ckpt_path += '_r/' if args.reverse else '/'
