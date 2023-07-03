@@ -11,9 +11,11 @@ If you are having problems with our work, please use the [Github issue page](htt
 
 ## Update Log
 See [Documentation-Updates]()
+
 2023.07.03
 Complete the README.md content
 Add neoloopfinder processing script batch_neoloop.sh
+cpu option added to training device
 
 ## Environment
 conda create -n cgmega python=3.8

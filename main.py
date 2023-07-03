@@ -16,7 +16,7 @@ from tqdm import tqdm
 import wandb
 
 import config_load
-from data_preprocess_cv import get_data, get_toy_example, get_cell_line, CancerDataset
+from data_preprocess_cv import get_data, get_cell_line, CancerDataset
 from model import *
 from utils import *
 
@@ -29,7 +29,7 @@ def arg_parse():
     parser.add_argument('-cv, "--cross_validation', dest="cv",
                         help="use cross validation", action="store_true")
     parser.add_argument('-f', "--finetune", dest='finetune', help="finetune", action="store_true")
-    parser.add_argument('-g', "--gpu", dest="gpu", default=3)
+    parser.add_argument('-g', "--gpu", dest="gpu", default=None)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
     parser.add_argument('-p', "--predict", dest='pred', help="predict all nodes", action="store_true")
@@ -716,8 +716,8 @@ def main(args, configs):
 if __name__ == "__main__":
     configs = config_load.get()
     args = arg_parse()
-    gpu = f"cuda:{args.gpu}"
-    configs["gpu"] = gpu
+    gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
+    configs["device"] = gpu
     if args.reverse:
         configs["reverse"] = True
     main(args, configs)

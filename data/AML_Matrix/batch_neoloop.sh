@@ -1,8 +1,8 @@
 #!/bin/bash
 
-for hic in 018 027
+for hic in 018
 do
-    cd data/AML_Matrix
+    # enter corresponding directory first: cd ./data/AML_Matrix
     mkdir $hic
     mv $hic.cool $hic/
     cd $hic
