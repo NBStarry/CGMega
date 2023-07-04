@@ -1,10 +1,8 @@
-Display: False
 batch_size: 256
 cv_folds: 10
 data_dir: data/Breast_Cancer_Matrix
 drop_neg: 0.5
 drop_rate: 0.4
-gpu: 3
 graph: ppi
 heads: 3
 hic: True

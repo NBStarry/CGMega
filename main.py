@@ -16,7 +16,7 @@ from tqdm import tqdm
 import wandb
 
 import config_load
-from data_preprocess_cv import get_data, get_toy_example, get_cell_line, CancerDataset
+from data_preprocess_cv import get_data, get_cell_line, CancerDataset
 from model import *
 from utils import *
 
@@ -29,9 +29,10 @@ def arg_parse():
     parser.add_argument('-cv, "--cross_validation', dest="cv",
                         help="use cross validation", action="store_true")
     parser.add_argument('-f', "--finetune", dest='finetune', help="finetune", action="store_true")
-    parser.add_argument('-g', "--gpu", dest="gpu", default=3)
+    parser.add_argument('-g', "--gpu", dest="gpu", default=0)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
+    parser.add_argument('-l', "--load", dest="load", help="load data", action="store_true")
     parser.add_argument('-p', "--predict", dest='pred', help="predict all nodes", action="store_true")
     parser.add_argument('-pt', "--patient", dest='patient', help="Patient ID", default=None, nargs='*')
     parser.add_argument('-r', "--reverse", dest="reverse", action='store_true')
@@ -523,7 +524,7 @@ def pred_to_df(i, result, y_index, y_true, y_score):
     return result
 
 
-def cv_train(args, configs, disturb=None, toy=False):
+def cv_train(args, configs, disturb=None):
     if args.finetune:
         ckpt_path = f"./predict/models/{configs['model']}"
         if configs['model'] == 'GATRes':
@@ -539,7 +540,8 @@ def cv_train(args, configs, disturb=None, toy=False):
             ckpt = ckpt_path + '/0.8837_0.9570_23.pkl'
     log_name = configs['log_name']
     num_folds = configs["cv_folds"]
-    dataset = [get_toy_example(configs)] if toy else get_data(configs=configs, stable=configs["stable"]) if disturb is None else get_data(configs=configs, stable=configs["stable"], disturb_list=disturb)
+    configs['load_data'] = args.load_data
+    dataset = get_data(configs=configs, stable=configs["stable"]) if disturb is None else get_data(configs=configs, stable=configs["stable"], disturb_list=disturb)
     if 'SVM' in configs['model']:
         train_SVM(configs, dataset)
         return
@@ -576,7 +578,7 @@ def cv_train(args, configs, disturb=None, toy=False):
                 lambda x: 1 if x['avg_score'] > 0.5 else 0, axis=1)
             score_avg_perfomance(train_result, score_col, configs['logfile'])
         else:
-            configs["fold"] = 0 if toy else 7
+            configs["fold"] = 7
             modules = get_training_modules(configs, dataset)
             if args.finetune:
                 print(f"Loading model from {ckpt} ......")
@@ -595,8 +597,7 @@ def cv_train(args, configs, disturb=None, toy=False):
 
 
 def predict_all(args, configs):
-    dataset = get_data(configs=configs) if not args.toy else [
-        get_toy_example(configs)]
+    dataset = get_data(configs=configs)
     num_folds = configs["cv_folds"]
     ckpt_path = "./predict/models/MCF7_Hi-C/" if not args.patient else f"./predict/models/AML/{configs['patient']}"
     ckpt_path += '_r/' if args.reverse else '/'
