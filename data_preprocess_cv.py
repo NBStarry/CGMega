@@ -131,7 +131,7 @@ def get_hic_mat(data_dir='data/Breast_Cancer_Matrix', drop_rate=0.0, reduce='svd
         'svd': TruncatedSVD(n_components=reduce_dim, algorithm="arpack"),
         'svdr': TruncatedSVD(n_components=reduce_dim),
         'nmf': NMF(n_components=reduce_dim, init='nndsvd', solver='mu',
-                   beta_loss='frobenius', max_iter=10000, alpha=0.1, tol=1e-6, l1_ratio=1),
+                   beta_loss='frobenius', max_iter=10000, tol=1e-6, l1_ratio=1),
         't-sne': TSNE(n_components=reduce_dim,
                       learning_rate='auto', init='pca'),
         'umap': UMAP(n_components=reduce_dim),
