@@ -10,7 +10,6 @@ from torch_geometric.data import Data, InMemoryDataset
 from sklearn.model_selection import train_test_split, StratifiedKFold
 from sklearn.decomposition import TruncatedSVD, NMF
 from sklearn.manifold import TSNE, Isomap, LocallyLinearEmbedding
-from umap import UMAP
 import config_load
 
 from utils import minmax, get_node_idx, get_all_nodes
@@ -52,7 +51,7 @@ def get_hic_mat(data_dir='data/Breast_Cancer_Matrix', drop_rate=0.0, reduce='svd
     data_dir:   str, default='data/Breast_Cancer_Matrix'
     drop_rate:  float, default=0.0. 
                 The proportion of entries to drop randomly for robustness study, set from 0.0 to 0.9. 
-    reduce:     str, {'svd', 'svdr', 'nmf', 't-sne', 'umap', 'isomap', 'lle', False}, default='svd'. 
+    reduce:     str, {'svd', 'svdr', 'nmf', 't-sne', 'isomap', 'lle', False}, default='svd'. 
                 Method for dimensionality reduction. Use False for no reduction.
     reduce_dim: int, default=5. 
                 Dimensionality after reduction.
@@ -134,7 +133,6 @@ def get_hic_mat(data_dir='data/Breast_Cancer_Matrix', drop_rate=0.0, reduce='svd
                    beta_loss='frobenius', max_iter=10000, tol=1e-6, l1_ratio=1),
         't-sne': TSNE(n_components=reduce_dim,
                       learning_rate='auto', init='pca'),
-        'umap': UMAP(n_components=reduce_dim),
         'isomap': Isomap(n_components=reduce_dim),
         'lle': LocallyLinearEmbedding(n_components=reduce_dim),
     }
