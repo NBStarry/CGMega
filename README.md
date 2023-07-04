@@ -23,7 +23,7 @@ git clone https://github.com/NBStarry/CGMega.git
 
 To verify a successful installation, just run:
 ```
-python main.py  # Importing the relevant library may take a few minutes.
+python main.py  # Importing the relevant libraries may take a few minutes.
 ```
 
 ## Tutorial
@@ -208,6 +208,11 @@ If you are having problems with our work, please use the [Github issue page](htt
 
 ## Update Log
 See [Documentation-Updates]()
+
+2023.07.01
+> Refining README.md. \
+Removed some unnecessary items from config.yaml. \
+Add example model and log. \
 
 2023.07.03
 >Complete the README.md content. \

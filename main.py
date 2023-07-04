@@ -32,6 +32,7 @@ def arg_parse():
     parser.add_argument('-g', "--gpu", dest="gpu", default=None)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
+    parser.add_argument('-l', "--load", dest="load", help="load data", action="store_true")
     parser.add_argument('-p', "--predict", dest='pred', help="predict all nodes", action="store_true")
     parser.add_argument('-pt', "--patient", dest='patient', help="Patient ID", default=None, nargs='*')
     parser.add_argument('-r', "--reverse", dest="reverse", action='store_true')
@@ -523,7 +524,7 @@ def pred_to_df(i, result, y_index, y_true, y_score):
     return result
 
 
-def cv_train(args, configs, disturb=None, toy=False):
+def cv_train(args, configs, disturb=None):
     if args.finetune:
         ckpt_path = f"./predict/models/{configs['model']}"
         if configs['model'] == 'GATRes':
@@ -576,7 +577,7 @@ def cv_train(args, configs, disturb=None, toy=False):
                 lambda x: 1 if x['avg_score'] > 0.5 else 0, axis=1)
             score_avg_perfomance(train_result, score_col, configs['logfile'])
         else:
-            configs["fold"] = 0 if toy else 7
+            configs["fold"] = 7
             modules = get_training_modules(configs, dataset)
             if args.finetune:
                 print(f"Loading model from {ckpt} ......")
@@ -717,6 +718,7 @@ if __name__ == "__main__":
     args = arg_parse()
     gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
     configs["device"] = gpu
+    configs['load_data'] = args.load_data
     if args.reverse:
         configs["reverse"] = True
     main(args, configs)
