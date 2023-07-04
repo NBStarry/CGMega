@@ -55,9 +55,9 @@ class MLP(t.nn.Module):
         return t.sigmoid(x)
 
 
-class GATRes(t.nn.Module):
+class CGMega(t.nn.Module):
     def __init__(self, in_channels, hidden_channels, heads, drop_rate, attn_drop_rate, edge_dim, devices_available):
-        super(GATRes, self).__init__()
+        super(CGMega, self).__init__()
         self.devices_available = devices_available
         self.drop_rate = drop_rate
         self.convs = t.nn.ModuleList()

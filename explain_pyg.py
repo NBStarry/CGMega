@@ -12,7 +12,7 @@ from torch_geometric.loader import NeighborLoader
 import config_load
 from data_preprocess_cv import get_data, CancerDataset
 from utils import get_node_name, get_node_idx, sum_norm, get_labeled_nodes
-from model import GATRes
+from model import CGMega
 from explainer import GATExplainer
 
 
@@ -199,7 +199,7 @@ class Visualizer():
 
 def main(args, ckpt, configs, node_list, out_dir): 
     '''
-    ckpt: 'outs/MCF7_CPDB/328_0.8976_24.pkl'
+    ckpt: 'outs/MCF7_CPDB/best_model.pkl'
     '''
     dataset = get_data(configs)
     hidden_channels = configs['hidden_channels']
@@ -207,7 +207,7 @@ def main(args, ckpt, configs, node_list, out_dir):
     drop_rate = configs['ppi_drop_rate']
     attn_drop = configs['ppi_attn_drop']
     print("Loading model from {}".format(ckpt))
-    model = GATRes(in_channels=dataset[0].num_node_features, hidden_channels=hidden_channels, heads=heads,
+    model = CGMega(in_channels=dataset[0].num_node_features, hidden_channels=hidden_channels, heads=heads,
                     drop_rate=drop_rate, attn_drop_rate=attn_drop, edge_dim=1, devices_available=configs['gpu'])  
     model.load_state_dict(t.load(ckpt)['state_dict'])
     explainer = GATExplainer(model=model, epochs=500, num_hops=2, return_type='prob')
@@ -254,7 +254,7 @@ if __name__ == "__main__":
                     node_list = [node.strip() for node in f.readlines()]
             else:
                 node_list = ['CDK6', 'MDM2', 'AKT2', 'E2F1', 'PTEN', 'PIK3CA', 'AKT1', 'MTOR', 'CTCF', 'GATA3', 'MAPK1', 'MAPK3', 'MAPK8', 'MAPK14']
-            ckpt = 'outs/MCF7_CPDB/328_0.8976_24.pkl' if not args.model else args.model
+            ckpt = 'outs/MCF7_CPDB/best_model.pkl' if not args.model else args.model
             if not args.output:
                 out_dir = 'explain/MCF7_CPDB'
             main(args=args, ckpt=ckpt, configs=configs, node_list=node_list, out_dir=out_dir)

@@ -22,7 +22,7 @@ from utils import *
 
 
 def arg_parse():
-    parser = argparse.ArgumentParser(description="Train GATRes arguments.")
+    parser = argparse.ArgumentParser(description="Train CGMega arguments.")
     parser.add_argument('-b', "--benchmark", dest="bm", action="store_true")
     parser.add_argument('-ch, "--change_hic', dest="change_hic_mat",
                         help="change origin Hi-C matrix", action="store_true")
@@ -79,8 +79,8 @@ def get_model(params, dataset):
         model = DualGATRes2(dataset["ppi"].num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
                             drop_rate=params["drop_rate"], hic_attn_drop_rate=params['ppi_attn_drop'], ppi_attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset["hic"][0].edge_dim, devices_available=params["gpu"])
         
-    elif params["model"] == "GATRes":
-        model = GATRes(in_channels=dataset.num_node_features, hidden_channels=params['hidden_channels'], heads=params['heads'],
+    elif params["model"] == "CGMega":
+        model = CGMega(in_channels=dataset.num_node_features, hidden_channels=params['hidden_channels'], heads=params['heads'],
                     drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["gpu"])
     
     elif params["model"] == "GCN":
@@ -160,7 +160,7 @@ def get_training_modules(params, dataset, pred=False):
                [dict(params=model.convs[i].parameters(), weight_decay=0) for i in range(1, len(model.convs))]
         optimizer = t.optim.Adam(opt_list, lr=params['lr'])
 
-    elif params["model"] == "GATRes":
+    elif params["model"] == "CGMega":
         optimizer = t.optim.AdamW([
             dict(params=model.convs.parameters(), weight_decay=0.05),
             dict(params=model.lins.parameters(), weight_decay=0.05)
@@ -390,7 +390,7 @@ def train_model(modules, params, log_name, fold, head_info=False):
     if head_info:
         config_load.print_config(logfile, params)
         with open(logfile, 'a') as f:
-            print("Model: GATRes\nTrain/Valid/Test: ",
+            print("Model: CGMega\nTrain/Valid/Test: ",
                   data.train_mask[:, fold].sum(), data.valid_mask[:, fold].sum(), data.test_mask.sum(),
                   file=f, flush=True)
 
@@ -527,7 +527,7 @@ def pred_to_df(i, result, y_index, y_true, y_score):
 def cv_train(args, configs, disturb=None):
     if args.finetune:
         ckpt_path = f"./predict/models/{configs['model']}"
-        if configs['model'] == 'GATRes':
+        if configs['model'] == 'CGMega':
             if 'AML' in configs['data_dir']:
                 ckpt = ckpt_path + ('/K562_Hi-C/527_0.8551_38.pkl')
             else:
