@@ -8,4 +8,6 @@ data/CPDB/CPDB_matrix.csv
 omics
 outs/MCF7_CPDB/*
 outs/AML/*
+log/*
+
 !outs/MCF7_CPDB/best_model.pkl

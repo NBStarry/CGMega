@@ -29,9 +29,9 @@ python main.py  # Importing the relevant libraries may take a few minutes.
 ## Tutorial
 This tutorial demonstrates how to use CGMega functions with a demo dataset (MCF7 cell line as an example). 
 Once you are familiar with CGMega’s workflow, please replace the demo data with your own data to begin your analysis. 
-[Jupyter notebook](https://github.com/NBStarry/CGMega/tree/main/Tutorial.ipynb) is available now.
+[Tutorial notebook](https://github.com/NBStarry/CGMega/tree/main/Tutorial.ipynb) is available now.
 
-### How to prepare input data (add a jupyter notebook later)
+### How to prepare input data
 
 We recommend getting started with CGMega using the provided demo dataset. When you want to apply CGMega to your own multi-omics dataset, please refer to the following tutorials to learn how to prepare input data.
 
@@ -164,7 +164,7 @@ If your computer does not satisfy the above, you may try to lower down the memor
 We are going to test CGMega under more scenarios like with different models of GPU or memory limits to update this table.
 
 ```
-## 3. Interpretation
+## Interpretation
 
 After prediction, you can do analyses as following to interpret your results.
 

@@ -212,7 +212,7 @@ def main(args, ckpt, configs, node_list, out_dir):
     model.load_state_dict(t.load(ckpt)['state_dict'])
     explainer = GATExplainer(model=model, epochs=500, num_hops=2, return_type='prob')
     task = Batch_Explain(dataset, explainer, node_list, out_dir=out_dir, normalized='sum', patient=True if args.patient else False)
-    drawer = Visualizer(node_list=node_list, out_dir=out_dir, fig_name='important_genes_1', label=task.label)
+    drawer = Visualizer(node_list=node_list, out_dir=out_dir, fig_name='important_genes', label=task.label)
 
     if args.s:
         task.explain(viz_subgraph=True, repeat=5)

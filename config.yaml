@@ -15,7 +15,7 @@ hidden_channels: 128
 lr: 0.001
 load_data: True
 log_dir: log
-model: GATRes
+model: CGMega
 neighbors: [-1, -1]
 num_epochs: 500
 ppi: CPDB
