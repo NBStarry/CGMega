@@ -10,7 +10,7 @@ We recommend using conda to configure the code runtime environment:
 ```
 conda create -n cgmega python=3.8.12
 conda install pytorch==1.9.1 -c pytorch
-pip install torch_geometric==2.0.3 transformers wandb umap-learn
+pip install torch_geometric==2.0.3 transformers wandb
 ```
 
 ## Installation
