@@ -29,7 +29,7 @@ def arg_parse():
     parser.add_argument('-cv, "--cross_validation', dest="cv",
                         help="use cross validation", action="store_true")
     parser.add_argument('-f', "--finetune", dest='finetune', help="finetune", action="store_true")
-    parser.add_argument('-g', "--gpu", dest="gpu", default=0)
+    parser.add_argument('-g', "--gpu", dest="gpu", default=None)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
     parser.add_argument('-l', "--load", dest="load", help="load data", action="store_true")
@@ -540,7 +540,6 @@ def cv_train(args, configs, disturb=None):
             ckpt = ckpt_path + '/0.8837_0.9570_23.pkl'
     log_name = configs['log_name']
     num_folds = configs["cv_folds"]
-    configs['load_data'] = args.load_data
     dataset = get_data(configs=configs, stable=configs["stable"]) if disturb is None else get_data(configs=configs, stable=configs["stable"], disturb_list=disturb)
     if 'SVM' in configs['model']:
         train_SVM(configs, dataset)
@@ -717,8 +716,9 @@ def main(args, configs):
 if __name__ == "__main__":
     configs = config_load.get()
     args = arg_parse()
-    gpu = f"cuda:{args.gpu}"
-    configs["gpu"] = gpu
+    gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
+    configs["device"] = gpu
+    configs['load_data'] = args.load_data
     if args.reverse:
         configs["reverse"] = True
     main(args, configs)
