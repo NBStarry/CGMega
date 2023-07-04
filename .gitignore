@@ -2,3 +2,6 @@ __pycache__
 .ipynb_checkpoints
 explain/AML/018/
 data/omics
+data/Breast_Cancer_Matrix/MCF7_Adjacent_Matrix_Ice
+data/Breast_Cancer_Matrix/MCF7-Normalized-Nodefeature-Matrix.csv
+data/CPDB/*
