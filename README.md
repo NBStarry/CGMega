@@ -27,8 +27,9 @@ python main.py  # Importing the relevant libraries may take a few minutes.
 ```
 
 ## Tutorial
-This tutorial demonstrates how to use CGMega functions with a demo dataset (MCF7 cell line as an example).
-Once you are familiar with CGMega’s workflow, please replace the demo data with your own data to begin your analysis.
+This tutorial demonstrates how to use CGMega functions with a demo dataset (MCF7 cell line as an example). 
+Once you are familiar with CGMega’s workflow, please replace the demo data with your own data to begin your analysis. 
+[Jupyter notebook](https://github.com/NBStarry/CGMega/tree/main/Tutorial.ipynb) is available now.
 
 ### How to prepare input data (add a jupyter notebook later)
 
