@@ -5,6 +5,9 @@ For more information, please read our paper: [CGMega: dissecting cancer gene mod
 
 CGMega was written in Python 3.8, and should run on any OS that support pytorch and pyg. Training is faster on a GPU with at least 24G memory to reproduce our results.
 
+## Documentation
+CGMega documentation is available through [Documentation](https://sunyolo.github.io/CGMega.github.io/).
+
 ## Conda Environment
 We recommend using conda to configure the code runtime environment:
 ```
@@ -200,9 +203,6 @@ In contrast, BRCA2, as the mediator of the core mechanism of homologous recombin
 Moreover, SNV was the RF for both BRCA1 and BRCA2. We also observed a high-order gene module combined from BRCA1 gene module and BRCA2 gene module through three shared genes including TP53, SMAD3 and XPO1.
 
 ![image](https://github.com/NBStarry/CGMega/blob/main/img/example.png)
-
-## Documentation
-CGMega documentation is available through [Documentation](https://sunyolo.github.io/CGMega.github.io/).
 
 ## Questions and Code Issues
 If you are having problems with our work, please use the [Github issue page](https://github.com/NBStarry/CGMega/issues).
