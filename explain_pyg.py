@@ -21,6 +21,7 @@ def arg_parse():
     parser.add_argument('-s', "--stable-exp", dest='s', action='store_true')
     parser.add_argument('--heatmap', dest='heatmap', action='store_true')
     parser.add_argument('-pt', "--patient", dest='patient', help="Patient ID", default=None, nargs='*')
+    parser.add_argument('-f', '--format', dest='format', default='png')
     parser.add_argument('-g', "--gpu", dest="gpu", default=3)
     parser.add_argument('-k', "--known", dest='known', action='store_true')
     parser.add_argument('-m', "--model", dest='model')
@@ -40,7 +41,7 @@ def select_best_model(dir):
         
 
 class Single_Node_Explain():
-    def __init__(self, dataset, explainer, node, out_dir, label, viz_subgraph=True, repeat=1, repeat_times=5) -> None:
+    def __init__(self, dataset, explainer, node, out_dir, label, viz_subgraph=True, repeat=1, repeat_times=5, format='png') -> None:
         self.dataset = dataset
         self.node = node
         self.repeat = repeat
@@ -49,6 +50,7 @@ class Single_Node_Explain():
         self.repeat_times = repeat_times
         self.viz_subgraph = viz_subgraph
         self.label = label
+        self.format = format
         
         self.node_idx = self.if_have_explained
         self.out_name = f'{node}' if repeat == 1 else [f'{node}_{i}' for i in range(repeat)]
@@ -62,7 +64,7 @@ class Single_Node_Explain():
             if node_idx == []:
                 print(f'Do not have node: {self.node}')
 
-            if self.node in explained_node_list:
+            if self.node in explained_node_list and self.repeat == 1:
                 print(f"already have {self.node}")
                 return []
             
@@ -87,7 +89,7 @@ class Single_Node_Explain():
         save_dir = os.path.join(save_dir, f'{out_name}.csv')
         feat_csv.to_csv(save_dir, sep='\t')
 
-    def generate_subgraph(self, edge_index, edge_mask, pred_y, out_name):
+    def generate_subgraph(self, edge_index, edge_mask, pred_y, out_name,):
         plt.clf()
         ex, G = self.explainer.visualize_subgraph(self.node_idx, edge_index=edge_index, edge_mask=edge_mask, num_all_nodes=self.dataset[0].num_nodes,
                 y=self.dataset[0].y, pred_y=pred_y)
@@ -96,7 +98,7 @@ class Single_Node_Explain():
         if not os.path.exists(save_dir): 
             print(f'{save_dir} does not exists, creating {save_dir}')
             os.makedirs(save_dir)
-        plt.savefig(os.path.join(save_dir, f'{out_name}.png'), transparent=True)
+        plt.savefig(os.path.join(save_dir, f'{out_name}.' + self.format), transparent=True, format=self.format)
     
     def save_edge_mask(self, edge_index, edge_list, out_name):
         node1 = get_node_name(edge_index[0].cpu().detach().numpy())
@@ -131,7 +133,7 @@ class Single_Node_Explain():
 
 
 class Batch_Explain():
-    def __init__(self, dataset, explainer, node_list, out_dir, normalized=False, patient=False) -> None:
+    def __init__(self, dataset, explainer, node_list, out_dir, normalized=False, patient=False, format='png') -> None:
         '''
         out_dir: 'explain/MCF7/repeat'
         normalized: {'sum', 'rank', False}
@@ -141,6 +143,7 @@ class Batch_Explain():
         self.node_list = node_list
         self.out_dir = out_dir
         self.normalized = normalized
+        self.format = format
 
         if not patient:
             self.label = ['ATAC-1','CTCF-1','CTCF-2','CTCF-3','H3K4me3-1','H3K4me3-2','H3K27ac-1','H3K27ac-2','Means-SNV','Means-CNV']
@@ -149,9 +152,9 @@ class Batch_Explain():
         for i in range(dataset[0].x.shape[1] - len(self.label)):
             self.label.append('HiC-{}'.format(i))
     
-    def explain(self, viz_subgraph=True, repeat=1, repeat_times=5):
+    def explain(self, viz_subgraph=True, repeat=1, repeat_times=5,):
         for node in self.node_list:
-            single_task = Single_Node_Explain(self.dataset, self.explainer, node, self.out_dir, self.label, viz_subgraph, repeat, repeat_times)
+            single_task = Single_Node_Explain(self.dataset, self.explainer, node, self.out_dir, self.label, viz_subgraph, repeat, repeat_times, self.format)
             feat_mask = single_task.output_results
 
             if feat_mask is None:
@@ -171,7 +174,7 @@ class Visualizer():
         self.node_list = node_list
         self.label = label
 
-    def feature_heatmap(self, all_feat_mask):
+    def feature_heatmap(self, all_feat_mask, format='png'):
         plt.clf()
         fig = plt.figure()
         ax = fig.add_subplot(111)
@@ -182,7 +185,7 @@ class Visualizer():
         plt.xticks(rotation=45)
         im = ax.imshow(all_feat_mask, cmap=plt.cm.hot_r, aspect="auto")
         plt.colorbar(im)
-        plt.savefig(os.path.join(self.out_dir, f"{self.fig_name}.png"), transparent=False)
+        plt.savefig(os.path.join(self.out_dir, f"{self.fig_name}"+format), transparent=False, format=format)
     
     @property
     def draw_heatmap(self):
@@ -195,9 +198,9 @@ class Visualizer():
         
         all_feat_mask.to_csv(os.path.join(self.out_dir, f"{self.fig_name}.csv"), sep='\t')
 
-        self.feature_heatmap(all_feat_mask, self.fig_name)
+        self.feature_heatmap(all_feat_mask, self.fig_name,)
 
-def main(args, ckpt, configs, node_list, out_dir): 
+def main(args, ckpt, configs, node_list, out_dir, format='png'): 
     '''
     ckpt: 'outs/MCF7_CPDB/best_model.pkl'
     '''
@@ -210,8 +213,8 @@ def main(args, ckpt, configs, node_list, out_dir):
     model = CGMega(in_channels=dataset[0].num_node_features, hidden_channels=hidden_channels, heads=heads,
                     drop_rate=drop_rate, attn_drop_rate=attn_drop, edge_dim=1, devices_available=configs['gpu'])  
     model.load_state_dict(t.load(ckpt)['state_dict'])
-    explainer = GATExplainer(model=model, epochs=500, num_hops=2, return_type='prob')
-    task = Batch_Explain(dataset, explainer, node_list, out_dir=out_dir, normalized='sum', patient=True if args.patient else False)
+    explainer = GATExplainer(model=model, epochs=500, num_hops=2, return_type='prob',)
+    task = Batch_Explain(dataset, explainer, node_list, out_dir=out_dir, normalized='sum', patient=True if args.patient else False, format=format)
     drawer = Visualizer(node_list=node_list, out_dir=out_dir, fig_name='important_genes', label=task.label)
 
     if args.s:
@@ -253,11 +256,11 @@ if __name__ == "__main__":
                 with open(args.node_list, mode='r') as f:
                     node_list = [node.strip() for node in f.readlines()]
             else:
-                node_list = ['CDK6', 'MDM2', 'AKT2', 'E2F1', 'PTEN', 'PIK3CA', 'AKT1', 'MTOR', 'CTCF', 'GATA3', 'MAPK1', 'MAPK3', 'MAPK8', 'MAPK14']
+                node_list = ['BRCA1']
             ckpt = 'outs/MCF7_CPDB/best_model.pkl' if not args.model else args.model
             if not args.output:
                 out_dir = 'explain/MCF7_CPDB'
-            main(args=args, ckpt=ckpt, configs=configs, node_list=node_list, out_dir=out_dir)
+            main(args=args, ckpt=ckpt, configs=configs, node_list=node_list, out_dir=out_dir, format=args.format)
             
         except Exception as e: #解决偶发bug
             print(e)
