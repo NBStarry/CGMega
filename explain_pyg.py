@@ -130,8 +130,6 @@ class Single_Node_Explain():
         return feat_mask
 
 
-
-
 class Batch_Explain():
     def __init__(self, dataset, explainer, node_list, out_dir, normalized=False, patient=False, format='png') -> None:
         '''

@@ -1,8 +1,6 @@
 # CGMega
 CGMega is a graph attention-based deep learning framework for cancer gene module dissection. CGMega leverages a combination of multi-omics data cross genome, epigenome, proteome and especially three-dimension (3D) genome levels.
 
-For more information, please read our paper: [CGMega: dissecting cancer gene module with explainable graph attention network]().
-
 CGMega was written in Python 3.8, and should run on any OS that support pytorch and pyg. Training is faster on a GPU with at least 24G memory to reproduce our results.
 
 ## Documentation

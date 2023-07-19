@@ -1,4 +1,6 @@
 __pycache__
+*.zip
+explain/MCF7_CPDB/*
 .ipynb_checkpoints
 explain/AML/018/
 explain/*.zip
@@ -12,3 +14,6 @@ outs/AML/*
 log/*
 
 !outs/MCF7_CPDB/best_model.pkl
+!explain/MCF7_CPDB/edge_mask/BRCA1.csv
+!explain/MCF7_CPDB/subgraph/BRCA1.png
+!explain/MCF7_CPDB/feature_mask/BRCA1.csv
