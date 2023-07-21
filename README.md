@@ -7,7 +7,7 @@ CGMega was written in Python 3.8, and should run on any OS that support pytorch 
 CGMega documentation is available through [Documentation](https://sunyolo.github.io/CGMega.github.io/).
 
 ## Conda Environment
-We recommend using conda to configure the code runtime environment:
+We recommend using conda to configure the code runtime environment, this could take 10-30 minutes:
 ```
 conda create -n cgmega python=3.8.12
 conda install pytorch==1.9.1 -c pytorch
