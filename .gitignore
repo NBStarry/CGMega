@@ -1,4 +1,5 @@
 __pycache__
+.DS_store
 *.zip
 explain/MCF7_CPDB/*
 .ipynb_checkpoints
@@ -8,7 +9,7 @@ data/Breast_Cancer_Matrix/MCF7_Adjacent_Matrix_Ice
 data/Breast_Cancer_Matrix/MCF7-Normalized-Nodefeature-Matrix.csv
 data/Breast_Cancer_Matrix/MCF7_CPDB_dataset.pkl
 data/CPDB/CPDB_matrix.csv
-omics
+data/Multiomics
 outs/MCF7_CPDB/*
 outs/AML/*
 log/*
