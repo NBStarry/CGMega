@@ -474,6 +474,7 @@ def get_data(configs, disturb_list=None, stable=True):
     hic_type = configs["hic_type"]
     load_data = configs["load_data"]
     ppi = configs["ppi"]
+    if ppi != 'CPDB': stable = False
     ppi_drop_rate = configs["ppi_drop_rate"]
     random_seed = configs["random_seed"]
     resolution = configs['resolution']

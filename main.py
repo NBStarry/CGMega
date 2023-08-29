@@ -77,31 +77,31 @@ def drop_samples(dataset, fold, sample_neg=0., sample_pos=1., num_samples=0, ran
 def get_model(params, dataset):
     if params["model"] == "DualGATRes":
         model = DualGATRes2(dataset["ppi"].num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
-                            drop_rate=params["drop_rate"], hic_attn_drop_rate=params['ppi_attn_drop'], ppi_attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset["hic"][0].edge_dim, devices_available=params["gpu"])
+                            drop_rate=params["drop_rate"], hic_attn_drop_rate=params['ppi_attn_drop'], ppi_attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset["hic"][0].edge_dim, devices_available=params["device"])
         
     elif params["model"] == "CGMega":
         model = CGMega(in_channels=dataset.num_node_features, hidden_channels=params['hidden_channels'], heads=params['heads'],
-                    drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["gpu"])
+                    drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["device"])
     
     elif params["model"] == "GCN":
         model = GCN(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
-                    drop_rate=params["drop_rate"], devices_available=params["gpu"])
+                    drop_rate=params["drop_rate"], devices_available=params["device"])
     
     elif params["model"] == "GAT":
         model = GAT(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
-                    drop_rate=params["drop_rate"], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["gpu"])
+                    drop_rate=params["drop_rate"], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["device"])
     
     elif "MLP" in params["model"]:
-        model = MLP(in_channels=dataset.num_node_features, drop_rate=params["drop_rate"], devices_available=params["gpu"])
+        model = MLP(in_channels=dataset.num_node_features, drop_rate=params["drop_rate"], devices_available=params["device"])
     
     elif "SVM" in params["model"]:
         model = SVM(C=1.0, gamma='scale', kernel='poly')
     
     elif params["model"] == "EMOGI":
-        model = EMOGI(in_channels=dataset.num_node_features, drop_rate=0.5, pos_loss_multiplier=45.0, hidden_dims=[300, 100], devices_available=params["gpu"])
+        model = EMOGI(in_channels=dataset.num_node_features, drop_rate=0.5, pos_loss_multiplier=45.0, hidden_dims=[300, 100], devices_available=params["device"])
 
     elif params["model"] == "MTGCN":
-        model = MTGCN(in_channels=dataset.num_node_features, hidden_dims=[300, 100], devices_available=params["gpu"])
+        model = MTGCN(in_channels=dataset.num_node_features, hidden_dims=[300, 100], devices_available=params["device"])
 
     return model
 
@@ -374,7 +374,7 @@ def train(model, fold, train_loader_list, valid_loader_list, optimizer, devices,
 def train_model(modules, params, log_name, fold, head_info=False):
     fold = params["fold"]
     logfile = params['logfile']
-    devices = params['gpu']
+    devices = params["device"]
     dataset = modules['dataset']
     model = modules['model']
     loader_list = modules['train_loader_list']
@@ -475,7 +475,7 @@ def train_model(modules, params, log_name, fold, head_info=False):
 
 
 def predict(model, loader_list, params, ckpt, labeled=True):
-    devices = params['gpu']
+    devices = params["device"]
     print(f"Loading model from {ckpt} ......")
     model.load_state_dict(t.load(ckpt)['state_dict'])
     model.eval()
@@ -665,12 +665,15 @@ def ways_of_reduction(args, configs):
 
 
 def run_benchmark(args, configs):
-    for model in ["MTGCN", "EMOGI", "GCN", "GAT", 'N2V_MLP', 'N2V_SVM']:
-        configs["model"] = model
-        configs["log_name"] = f"/mcf7_{model}" if configs['hic'] else f"/mcf7_{model}(woH)"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
-        disturb = {'add': ['PPI']} if 'N2V' in model else None
-        cv_train(args, configs, disturb)
+    for ppi in ["IRef", "PCNet", "STRING", "Multinet"]:
+        configs["ppi"] = ppi
+        for model in ["MTGCN", "EMOGI", "GCN", "GAT"]: # 'N2V_MLP', 'N2V_SVM'
+            configs["model"] = model
+            configs["log_name"] = f"/mcf7_{model}" if configs['hic'] else f"/mcf7_{model}(woH)"
+            configs["log_name"] += f"_{ppi}" if configs["ppi"] != "CPDB" else ""
+            configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+            disturb = {'add': ['PPI']} if 'N2V' in model else None
+            cv_train(args, configs, disturb)
 
 def patient_train(args, configs):
     print(args.patient)
@@ -690,6 +693,7 @@ def main(args, configs):
 
     elif args.hic_graph:
         hic_graph(args, configs)
+
     elif args.hic_reduce:
         ways_of_reduction(args, configs)
 
@@ -718,7 +722,7 @@ if __name__ == "__main__":
     args = arg_parse()
     gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
     configs["device"] = gpu
-    configs['load_data'] = args.load_data
+    configs['load_data'] = args.load
     if args.reverse:
         configs["reverse"] = True
     main(args, configs)

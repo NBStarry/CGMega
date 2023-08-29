@@ -5,9 +5,7 @@ explain/MCF7_CPDB/*
 .ipynb_checkpoints
 explain/AML/018/
 explain/*.zip
-data/Breast_Cancer_Matrix/MCF7_Hi-C_Ice
-data/Breast_Cancer_Matrix/MCF7-Normalized-Nodefeature-Matrix.csv
-data/Breast_Cancer_Matrix/MCF7_CPDB_dataset.pkl
+data/Breast_Cancer_Matrix/*
 data/CPDB/CPDB_matrix.csv
 data/Multiomics/*
 outs/MCF7_CPDB/*
@@ -18,3 +16,5 @@ log/*
 !explain/MCF7_CPDB/edge_mask/BRCA1.csv
 !explain/MCF7_CPDB/subgraph/BRCA1.png
 !explain/MCF7_CPDB/feature_mask/BRCA1.csv
+!data/Breast_Cancer_Matrix/MCF7_CPDB_dataset_final.pkl
+!data/Breast_Cancer_Matrix/MCF7-Label.txt
