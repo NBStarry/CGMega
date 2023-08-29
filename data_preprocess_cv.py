@@ -73,12 +73,12 @@ def get_hic_mat(data_dir='data/Breast_Cancer_Matrix', drop_rate=0.0, reduce='svd
     def get_hic_dir():
         if type == 'ice':
             if sample_rate == '10' and resolution == DEFAULT_RESO:
-                hic_dir = data_dir + cell_line + "_Adjacent_Matrix_Ice"
+                hic_dir = data_dir + cell_line + "_Hi-C_Ice"
             else:
                 hic_dir = data_dir + "/drop_hic_ice/" + resolution + '/' + \
                     sample_rate + '_' + cell_line[1:] + "_ICE_downsample.csv"
         elif type == 'int':
-            hic_dir = data_dir + cell_line + "_Adjacent_Matrix"
+            hic_dir = data_dir + cell_line + "_Hi-C"
         print(f"Loading Hi-C matrix from {hic_dir} ......")
 
         return hic_dir

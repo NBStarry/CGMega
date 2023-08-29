@@ -204,17 +204,3 @@ Moreover, SNV was the RF for both BRCA1 and BRCA2. We also observed a high-order
 
 ## Questions and Code Issues
 If you are having problems with our work, please use the [Github issue page](https://github.com/NBStarry/CGMega/issues).
-
-## Update Log
-See [Documentation-Updates]()
-
-2023.07.01
-> Refining README.md. \
-Removed some unnecessary items from config.yaml. \
-Add example model and log. \
-
-2023.07.03
->Complete the README.md content. \
-Add neoloopfinder processing script batch_neoloop.sh. \
-Cpu option added to training device. \
-Add necessary images.
