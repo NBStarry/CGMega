@@ -642,13 +642,20 @@ def down_sample_migrate(args, configs):
                 cv_train(args, configs)
 
 
+def down_sample_train(args, configs):
+    num_samples = [i for i in range(1000, 99, -100)]
+    num_samples.extend([i for i in range(90, 9, -20)])
+    num_samples.append(250)
+    for model in ['GCN', 'GAT', 'MTGCN', ]: pass
+
+
 def hic_graph(args, configs):
     configs["stable"] = False
     configs["graph"] = "dual" # "dual", "onlyc", "plusc"
     for norm in ['binary']:
         configs["hic_norm"] = norm
-        configs["log_name"] = f"/mcf7_hic_{norm}_{configs['graph']}_graph"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+        configs["log_name"] = f"mcf7_hic_{norm}_{configs['graph']}_graph"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         configs["ppi"] = "CPDB"
         configs["load_data"] = True
         cv_train(args, configs)
@@ -659,28 +666,29 @@ def ways_of_reduction(args, configs):
     configs["hic_reduce"] = "t-sne"
     for i in [1, 2, 3]:
         configs["hic_reduce_dim"] = i
-        configs["log_name"] = "/mcf7_hic_" + configs["hic_reduce"] + f"_{i}"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+        configs["log_name"] = "mcf7_hic_" + configs["hic_reduce"] + f"_{i}"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         cv_train(args, configs)
 
 
 def run_benchmark(args, configs):
     for ppi in ["IRef", "PCNet", "STRING", "Multinet"]:
         configs["ppi"] = ppi
-        for model in ["MTGCN", "EMOGI", "GCN", "GAT"]: # 'N2V_MLP', 'N2V_SVM'
+        for model in ["EMOGI", "MTGCN", "GCN", "GAT"]: # 'N2V_MLP', 'N2V_SVM'
             configs["model"] = model
-            configs["log_name"] = f"/mcf7_{model}" if configs['hic'] else f"/mcf7_{model}(woH)"
+            configs["log_name"] = f"mcf7_{model}" if configs['hic'] else f"mcf7_{model}(woH)"
             configs["log_name"] += f"_{ppi}" if configs["ppi"] != "CPDB" else ""
-            configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+            configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
             disturb = {'add': ['PPI']} if 'N2V' in model else None
             cv_train(args, configs, disturb)
+
 
 def patient_train(args, configs):
     print(args.patient)
     for patient in args.patient:
         configs['data_dir'] = f'data/AML_Matrix/{patient}'
-        configs["log_name"] = f"/{configs['data_dir'].split('/')[-1]}"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+        configs["log_name"] = f"{configs['data_dir'].split('/')[-1]}"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         cv_train(args, configs)
     
 
@@ -701,8 +709,8 @@ def main(args, configs):
         configs["stable"] = False
         for i in [1, 2, 5, 10]:
             configs["hic_reduce_dim"] = i
-            configs["log_name"] = "/mcf7_hic_" + configs["hic_type"] + f"_{i}"
-            configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+            configs["log_name"] = "mcf7_hic_" + configs["hic_type"] + f"_{i}"
+            configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
             cv_train(args, configs)
 
     elif args.bm:

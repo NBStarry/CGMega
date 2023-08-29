@@ -272,7 +272,7 @@ class EMOGI(t.nn.Module):
             if self.drop_rate is not None:
                 x = F.dropout(x, self.drop_rate, training=self.training)
         x = self.convs[-1](x, data.edge_index)
-        return F.log_softmax(x, dim=1)
+        return t.sigmoid(x)
     
 # according to https://github.com/weiba/MTGCN/blob/master/MTGCN.py
 class MTGCN(t.nn.Module):
