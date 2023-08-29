@@ -8,8 +8,7 @@ explain/*.zip
 data/Breast_Cancer_Matrix/*
 data/CPDB/CPDB_matrix.csv
 data/Multiomics/*
-outs/MCF7_CPDB/*
-outs/AML/*
+outs/*
 log/*
 
 !outs/MCF7_CPDB/best_model.pkl

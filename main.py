@@ -28,6 +28,7 @@ def arg_parse():
                         help="change origin Hi-C matrix", action="store_true")
     parser.add_argument('-cv, "--cross_validation', dest="cv",
                         help="use cross validation", action="store_true")
+    parser.add_argument('-d', "--down_sample", dest="ds", action="store_true")
     parser.add_argument('-f', "--finetune", dest='finetune', help="finetune", action="store_true")
     parser.add_argument('-g', "--gpu", dest="gpu", default=None)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
@@ -114,14 +115,14 @@ def get_training_modules(params, dataset, pred=False):
         loss_func = torch.nn.BCELoss()
 
     fold = params["fold"]
-    params["drop_neg"] = 0. if pred else params["drop_neg"]
-    print("Drop ", params['drop_neg'], "of negative train samples")
+    params["sample_neg"] = 1. if pred else params["sample_neg"]
+    print("Drop ", 1 - params['sample_neg'], "of negative train samples and ", 1 - params['sample_pos'], "of positive train samples")
     if isinstance(dataset, dict):
-        drop_idx = drop_samples(dataset["hic"], fold, sample_neg=(
-            1 - params['drop_neg']), random_seed=params['random_seed'])
+        drop_idx = drop_samples(dataset["hic"], fold, sample_neg=
+            params['sample_neg'], sample_pos=params['sample_pos'], random_seed=params['random_seed'])
     else:
-        drop_idx = drop_samples(dataset, fold, sample_neg=(
-            1 - params['drop_neg']), random_seed=params['random_seed'])
+        drop_idx = drop_samples(dataset, fold, sample_neg=
+            params['sample_neg'], sample_pos=params['sample_pos'], random_seed=params['random_seed'])
     if params["sample_rate"] < 1:
         print("Drop ", (1 - params['sample_rate']), "of train samples")
         drop_idx += drop_samples(dataset, fold, params['sample_rate'], params['sample_rate'], params['random_seed'])
@@ -643,10 +644,16 @@ def down_sample_migrate(args, configs):
 
 
 def down_sample_train(args, configs):
-    num_samples = [i for i in range(1000, 99, -100)]
-    num_samples.extend([i for i in range(90, 9, -20)])
-    num_samples.append(250)
-    for model in ['GCN', 'GAT', 'MTGCN', ]: pass
+    configs['data_dir'] = "data/Leukemia_Matrix"
+    sample_list = [(1, 0.33), (0.67, 0.43), (0.5, 0.49), (0.4, 0.52), (0.33, 0.54), (0.28, 0.56), (0.25, 0.57), (0.22, 0.58), (0.2, 0.59)]
+    for model in ['GCN', 'GAT', 'MTGCN', 'EMOGI']:
+        configs['model'] = model
+        for sample_rate in sample_list:
+            configs['sample_pos'] = sample_rate[0]
+            configs['sample_neg'] = sample_rate[1]
+            configs['log_name'] = f"k562_{model}_sample_{sample_rate[0]}_{sample_rate[1]}"
+            configs['logfile'] = os.path.join(configs['log_dir'], configs['log_name'] + '.txt')
+            cv_train(args, configs)
 
 
 def hic_graph(args, configs):
@@ -718,6 +725,9 @@ def main(args, configs):
 
     elif args.patient:
         patient_train(args, configs)
+
+    elif args.ds:
+        down_sample_train(args, configs)
 
     else:
         configs["log_name"] = f"{get_cell_line(configs['data_dir'])[1:]}_{configs['ppi']}"

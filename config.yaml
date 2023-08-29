@@ -1,7 +1,6 @@
 batch_size: 256
 cv_folds: 10
 data_dir: data/Breast_Cancer_Matrix
-drop_neg: 0.5
 drop_rate: 0.4
 graph: ppi
 heads: 3
@@ -27,6 +26,8 @@ repeat: 1
 resolution: 10KB
 reverse: False
 sample_rate : 1.0
+sample_pos : 1.0
+sample_neg : 0.5
 stable : True
 out_dir: outs
 wandb: False
