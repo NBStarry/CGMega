@@ -17,6 +17,7 @@ log_dir: log
 model: CGMega
 neighbors: [-1, -1]
 num_epochs: 500
+pan: False
 ppi: CPDB
 ppi_attn_drop: 0.1
 ppi_drop_rate: 0
@@ -31,3 +32,4 @@ sample_neg : 0.5
 stable : True
 out_dir: outs
 wandb: False
+weight_decay: 0.05

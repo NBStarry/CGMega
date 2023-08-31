@@ -1,13 +1,18 @@
 __pycache__
 .DS_store
 *.zip
-explain/MCF7_CPDB/*
 .ipynb_checkpoints
+
+explain/MCF7_CPDB/*
 explain/AML/018/
 explain/*.zip
+
 data/Breast_Cancer_Matrix/*
 data/CPDB/CPDB_matrix.csv
 data/Multiomics/*
+data/MODIG/*
+data/additional_explain.txt
+
 outs/*
 log/*
 

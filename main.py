@@ -35,6 +35,7 @@ def arg_parse():
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
     parser.add_argument('-l', "--load", dest="load", help="load data", action="store_true")
     parser.add_argument('-p', "--predict", dest='pred', help="predict all nodes", action="store_true")
+    parser.add_argument('--pan', dest='pan', default=False)
     parser.add_argument('-pt', "--patient", dest='patient', help="Patient ID", default=None, nargs='*')
     parser.add_argument('-r', "--reverse", dest="reverse", action='store_true')
     return parser.parse_args()
@@ -82,7 +83,7 @@ def get_model(params, dataset):
         
     elif params["model"] == "CGMega":
         model = CGMega(in_channels=dataset.num_node_features, hidden_channels=params['hidden_channels'], heads=params['heads'],
-                    drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["device"])
+                    drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, residual=True, devices_available=params["device"])
     
     elif params["model"] == "GCN":
         model = GCN(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
@@ -163,8 +164,8 @@ def get_training_modules(params, dataset, pred=False):
 
     elif params["model"] == "CGMega":
         optimizer = t.optim.AdamW([
-            dict(params=model.convs.parameters(), weight_decay=0.05),
-            dict(params=model.lins.parameters(), weight_decay=0.05)
+            dict(params=model.convs.parameters(), weight_decay=params['weight_decay']),
+            dict(params=model.lins.parameters(), weight_decay=params['weight_decay'])
         ], lr=params['lr'])
 
     elif "SVM" in params["model"]:
@@ -697,7 +698,21 @@ def patient_train(args, configs):
         configs["log_name"] = f"{configs['data_dir'].split('/')[-1]}"
         configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         cv_train(args, configs)
-    
+
+
+def pan_train(args, configs):
+    print(f"Training {args.pan} dataset.")
+    for ppi in ['STRING', 'irefindex', 'Mentha', 'BioPlex', 'CPDB_v34', 'HINT', 'HumanNet', 'InBioMap', 'IntAct']:  
+        configs['ppi'] = ppi
+        configs['data_dir'] = f'data/{args.pan}'
+        configs['stable'] = False
+        configs['pan'] = True
+        configs['cv_folds'] = 5
+        configs['log_name'] = f"{configs['data_dir'].split('/')[-1]}_{configs['model']}_{configs['ppi']}"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
+        configs['lr'] = 0.0001
+        configs['neighbors'] = [40,10]
+        cv_train(args, configs)
 
 def main(args, configs):
     if args.pred:
@@ -725,6 +740,9 @@ def main(args, configs):
 
     elif args.patient:
         patient_train(args, configs)
+
+    elif args.pan:
+        pan_train(args, configs)
 
     elif args.ds:
         down_sample_train(args, configs)
