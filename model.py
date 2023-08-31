@@ -56,19 +56,20 @@ class MLP(t.nn.Module):
 
 
 class CGMega(t.nn.Module):
-    def __init__(self, in_channels, hidden_channels, heads, drop_rate, attn_drop_rate, edge_dim, devices_available):
+    def __init__(self, in_channels, hidden_channels, heads, drop_rate, attn_drop_rate, edge_dim, residual, devices_available):
         super(CGMega, self).__init__()
         self.devices_available = devices_available
         self.drop_rate = drop_rate
         self.convs = t.nn.ModuleList()
+        self.residual = residual
+        mid_channels = in_channels + hidden_channels if residual else hidden_channels
 
         self.convs.append(TransformerConv(in_channels, hidden_channels, heads=heads, dropout=attn_drop_rate, edge_dim=edge_dim,
                                           concat=False, beta=True).to(self.devices_available))
-        self.convs.append(TransformerConv(hidden_channels + in_channels, hidden_channels, heads=heads,
+        self.convs.append(TransformerConv(mid_channels, hidden_channels, heads=heads,
                                           dropout=attn_drop_rate, edge_dim=edge_dim, concat=True, beta=True).to(self.devices_available))
         
-        self.ln1 = LayerNorm(in_channels=hidden_channels +
-                             in_channels).to(self.devices_available)
+        self.ln1 = LayerNorm(in_channels=mid_channels).to(self.devices_available)
         self.ln2 = LayerNorm(in_channels=hidden_channels *
                              heads).to(self.devices_available)
         
@@ -90,7 +91,7 @@ class CGMega(t.nn.Module):
         res = x
         x = self.convs[0](x, edge_index, edge_attr)
         x = F.leaky_relu(x, negative_slope=LEAKY_SLOPE, inplace=True)
-        x = t.cat((x, res), dim=1)
+        x = t.cat((x, res), dim=1) if self.residual else x
         x = self.ln1(x)
 
         edge_index, edge_attr = dropout_adj(data.edge_index, data.edge_attr, p=self.drop_rate, force_undirected=True,
