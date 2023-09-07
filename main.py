@@ -86,7 +86,7 @@ def get_model(params, dataset):
                     drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, residual=True, devices_available=params["device"])
     
     elif params["model"] == "GCN":
-        model = GCN(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
+        model = GCN(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"],
                     drop_rate=params["drop_rate"], devices_available=params["device"])
     
     elif params["model"] == "GAT":

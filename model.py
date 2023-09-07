@@ -195,7 +195,7 @@ class DualGATRes2(t.nn.Module):
 
 
 class GCN(t.nn.Module):
-    def __init__(self, in_channels, hidden_channels, heads, drop_rate, devices_available):
+    def __init__(self, in_channels, hidden_channels, drop_rate, devices_available):
         super(GCN, self).__init__()
         self.devices_available = devices_available
         self.drop_rate = drop_rate

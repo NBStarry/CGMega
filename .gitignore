@@ -4,7 +4,7 @@ __pycache__
 .ipynb_checkpoints
 
 explain/MCF7_CPDB/*
-explain/AML/018/
+explain/AML/*
 explain/*.zip
 
 data/AML_Matrix/*
@@ -18,6 +18,8 @@ data/Results/*
 outs/*
 log/*
 
+predict/*
+
 !outs/MCF7_CPDB/best_model.pkl
 !explain/MCF7_CPDB/edge_mask/BRCA1.csv
 !explain/MCF7_CPDB/subgraph/BRCA1.png
@@ -26,3 +28,4 @@ log/*
 !data/AML_Matrix/batch_neoloop.sh
 !data/Breast_Cancer_Matrix/MCF7_CPDB_dataset_final.pkl
 !data/Breast_Cancer_Matrix/MCF7-Label.txt
+!predict/AML/018/018_0.97+.csv
