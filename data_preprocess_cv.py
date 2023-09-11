@@ -18,6 +18,7 @@ EPS = 1e-8
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="Data Preprocess.")
+    parser.add_argument('-j', '--joint', dest='joint', help="to package joint data", action="store_true")
     parser.add_argument('-p', '--patient', dest='patient', help="to package patient data", default=False, nargs='*')
     parser.add_argument('-r', '--reverse', dest='reverse', help="to package reverse patient data", action="store_true")
     parser.add_argument('--pan', dest='pan', default=False)
@@ -213,14 +214,14 @@ def get_ppi_mat(ppi_name='CPDB', drop_rate=0.0, from_list=False, random_seed=42,
         return data
 
     # Load PPI data from a matrix
-    ppi_dir = prefix + f"/{ppi_name}/{ppi_name}_matrix.csv.gz"
+    ppi_dir = prefix + f"/{ppi_name}/{ppi_name}_matrix.csv"
     print(f"Loading PPI matrix from {ppi_dir} ......")
-    data = pd.read_csv(ppi_dir, sep="\t", compression='gzip', encoding='utf8').to_numpy()[:, 1:]
+    data = pd.read_csv(ppi_dir, sep="\t").to_numpy()[:, 1:]
 
     return data
 
 
-def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False):
+def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False, slice=False):
     """
     Read label data, where some nodes have labels and others do not. For the nodes with labels, change the labels from -1 to 0.
 
@@ -232,6 +233,8 @@ def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False):
     label_dir = data_dir + cell_line
     label_dir += "-Label.txt" if not reverse else "-test-Label.txt"
     data = read_table_to_np(label_dir, dtype=int).transpose()[0]
+    if slice is not False: data = data[slice]
+
     labeled_idx = []
     labels = np.zeros((len(data), 2), dtype=float)
     for i in range(len(data)):
@@ -488,7 +491,7 @@ def get_data(configs, disturb_list=None, stable=True):
             if key not in disturb_list: disturb_list[key] = []
 
     cell_line = get_cell_line(data_dir)
-    if configs['pan']: pan = cell_line[1:] 
+    pan = cell_line[1:] if configs['pan'] else False
 
     def get_dataset_dir(stable):
         if hic_reduce:
@@ -498,6 +501,8 @@ def get_data(configs, disturb_list=None, stable=True):
                 dataset_suffix = f"_{ppi}_dataset_final" if stable else f"_{ppi}_dataset"
         else:
             dataset_suffix = "_dataset_" + configs["graph"] # "dual", "onlyc", "plusc"
+        
+        if configs['joint']: dataset_suffix += "_joint"
 
         dataset_dir = os.path.join(
             data_dir, cell_line[1:] + dataset_suffix + '.pkl')
@@ -521,10 +526,21 @@ def get_data(configs, disturb_list=None, stable=True):
 
     ppi_mat = get_ppi_mat(
         ppi, drop_rate=ppi_drop_rate, from_list=False, random_seed=random_seed, pan=pan) if ppi else None
-
+    
     node_mat, pos = get_node_feat(hic_feat=hic_mat if hic_reduce else None, data_dir=data_dir)
+    node_mat, pos = get_node_feat(None, data_dir=data_dir)
+    
+    if configs['joint']:
+        zero_rows = np.all(ppi_mat == 0, axis=1)
+        zero_cols = np.all(ppi_mat == 0, axis=0)
+        non_zero_rows = ~zero_rows
+        non_zero_cols = ~zero_cols
+        non_zero_idx = np.where(non_zero_rows)[0]
+        ppi_mat = ppi_mat[non_zero_rows][:, non_zero_cols]
+        node_mat = node_mat[non_zero_rows]
+        pos = np.arange(len(non_zero_idx))
 
-    node_lab, labeled_idx = get_label(data_dir, reverse=configs['reverse'])
+    node_lab, labeled_idx = get_label(data_dir, reverse=configs['reverse'], slice=non_zero_idx if configs['joint'] else None)
     labeled_lab = [node_lab[i][1] for i in labeled_idx]
 
     train_idx_list, valid_idx_list = [], []
@@ -561,6 +577,7 @@ if __name__ == "__main__":
     configs = config_load.get()
     args = arg_parse()
     configs["load_data"] = False
+    configs['joint'] = args.joint
 
     if args.reverse:
         configs["reverse"] = True
@@ -577,13 +594,5 @@ if __name__ == "__main__":
         configs['hic'] = False
         configs['pan'] = True
         configs['random_seed'] = 41
-    
-    for ppi in ['irefindex', 'Mentha']: #'STRING', 'BioPlex', 'CPDB_v34', 'HINT', 'HumanNet', 'InBioMap', 'IntAct', 
-        configs['data_dir'] = f'data/MODIG'
-        configs['ppi'] = ppi
-        configs['cv_folds'] = 5
-        configs['hic'] = False
-        configs['pan'] = True
-        configs['random_seed'] = 41
 
-        data = get_data(configs)
+    data = get_data(configs)

@@ -11,6 +11,7 @@ data/AML_Matrix/*
 data/Breast_Cancer_Matrix/*
 data/CPDB/CPDB_matrix.csv
 data/Multiomics/*
+data/Multinet/*
 data/MODIG/*
 data/additional_explain.txt
 data/Results/*

@@ -11,6 +11,7 @@ hic_reduce: svd
 hic_reduce_dim: 5
 hic_type: ice
 hidden_channels: 128
+joint: False
 lr: 0.001
 load_data: True
 log_dir: log

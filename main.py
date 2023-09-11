@@ -33,6 +33,7 @@ def arg_parse():
     parser.add_argument('-g', "--gpu", dest="gpu", default=None)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
+    parser.add_argument('-j', '--joint', dest='joint', help="to use joint data", action="store_true")
     parser.add_argument('-l', "--load", dest="load", help="load data", action="store_true")
     parser.add_argument('-p', "--predict", dest='pred', help="predict all nodes", action="store_true")
     parser.add_argument('--pan', dest='pan', default=False)
@@ -500,9 +501,9 @@ def predict(model, loader_list, params, ckpt, labeled=True):
         pred_lab[out > 0.5] = 1
         pred_lab = pred_lab.to(devices)
         if y_score.size == 0:
-            y_score = out.cpu().detach()
+            y_score = out.cpu().detach().numpy()
         else:
-            y_score = np.append(y_score, out.cpu().detach(), axis=0)
+            y_score = np.append(y_score, out.cpu().detach().numpy(), axis=0)
         y_pred = np.append(y_pred, pred_lab.cpu().detach().numpy())
         y_index = np.append(y_index, index.cpu().detach().numpy())
 
@@ -680,7 +681,7 @@ def ways_of_reduction(args, configs):
 
 
 def run_benchmark(args, configs):
-    for ppi in ["IRef", "PCNet", "STRING", "Multinet"]:
+    for ppi in ["Multinet"]:
         configs["ppi"] = ppi
         for model in ["EMOGI", "MTGCN", "GCN", "GAT"]: # 'N2V_MLP', 'N2V_SVM'
             configs["model"] = model
@@ -693,9 +694,11 @@ def run_benchmark(args, configs):
 
 def patient_train(args, configs):
     print(args.patient)
+    configs['hic'] = False
     for patient in args.patient:
         configs['data_dir'] = f'data/AML_Matrix/{patient}'
         configs["log_name"] = f"{configs['data_dir'].split('/')[-1]}"
+        configs["log_name"] += 'wohic' if not configs['hic'] else ''
         configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         cv_train(args, configs)
 
@@ -759,6 +762,7 @@ if __name__ == "__main__":
     gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
     configs["device"] = gpu
     configs['load_data'] = args.load
+    configs['joint'] = args.joint
     if args.reverse:
         configs["reverse"] = True
     main(args, configs)
