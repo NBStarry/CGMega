@@ -337,19 +337,27 @@ class CancerDataset(InMemoryDataset):
         }
 
     def get_feature_dict(self):
-        feature_idx = {'ATAC': [0],
-                       'CTCF': [1, 2, 3],
-                       'H3K4me3': [4, 5],
-                       'H3K27ac': [6, 7],
-                       'SNV': [8],
-                       'CNV': [9],
-                       'Hi-C': [i for i in range(10, self.data.num_node_features)]}
+        if self.data.num_node_features == 15:
+            feature_idx = {'ATAC': [0],
+                        'CTCF': [1, 2, 3],
+                        'H3K4me3': [4, 5],
+                        'H3K27ac': [6, 7],
+                        'SNV': [8],
+                        'CNV': [9],
+                        'Hi-C': [i for i in range(10, self.data.num_node_features)]}
+        elif self.data.num_node_features == 8:
+            feature_idx = {'ATAC': [0],
+                        'CTCF': [1],
+                        'H3K27ac': [2],
+                        'Hi-C': [i for i in range(3, self.data.num_node_features)]}
+            
         for i in range(len(feature_idx['Hi-C'])):
             feature_idx[f'Hi-C-{i+1}'] = [i + feature_idx['Hi-C'][0]]
         for i in range(len(feature_idx['CTCF'])):
             feature_idx[f'CTCF-{i+1}'] = [i + feature_idx['CTCF'][0]]
-        for i in range(len(feature_idx['H3K4me3'])):
-            feature_idx[f'H3K4me3-{i+1}'] = [i + feature_idx['H3K4me3'][0]]
+        if 'H3K4me3' in feature_idx:
+            for i in range(len(feature_idx['H3K4me3'])):
+                feature_idx[f'H3K4me3-{i+1}'] = [i + feature_idx['H3K4me3'][0]]
         for i in range(len(feature_idx['H3K27ac'])):
             feature_idx[f'H3K27ac-{i+1}'] = [i + feature_idx['H3K27ac'][0]]
 
