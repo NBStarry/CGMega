@@ -18,8 +18,10 @@ EPS = 1e-8
 
 def arg_parse():
     parser = argparse.ArgumentParser(description="Data Preprocess.")
+    parser.add_argument('-j', '--joint', dest='joint', help="to package joint data", action="store_true")
     parser.add_argument('-p', '--patient', dest='patient', help="to package patient data", default=False, nargs='*')
     parser.add_argument('-r', '--reverse', dest='reverse', help="to package reverse patient data", action="store_true")
+    parser.add_argument('--pan', dest='pan', default=False)
     return parser.parse_args()
 
 def get_cell_line(data_dir):
@@ -29,8 +31,8 @@ def get_cell_line(data_dir):
         cell_line = "/K562"
     elif "AML" in data_dir:
         cell_line = '/' + data_dir.split('/')[-1]
-    elif "Pan" in data_dir:
-        cell_line = "/Pan"
+    elif 'MODIG' in data_dir:
+        cell_line = "/MODIG"
     else:
         print(f"Invalid directory {data_dir}.")
     return cell_line
@@ -73,12 +75,12 @@ def get_hic_mat(data_dir='data/Breast_Cancer_Matrix', drop_rate=0.0, reduce='svd
     def get_hic_dir():
         if type == 'ice':
             if sample_rate == '10' and resolution == DEFAULT_RESO:
-                hic_dir = data_dir + cell_line + "_Adjacent_Matrix_Ice"
+                hic_dir = data_dir + cell_line + "_Hi-C_Ice"
             else:
                 hic_dir = data_dir + "/drop_hic_ice/" + resolution + '/' + \
                     sample_rate + '_' + cell_line[1:] + "_ICE_downsample.csv"
         elif type == 'int':
-            hic_dir = data_dir + cell_line + "_Adjacent_Matrix"
+            hic_dir = data_dir + cell_line + "_Hi-C"
         print(f"Loading Hi-C matrix from {hic_dir} ......")
 
         return hic_dir
@@ -170,7 +172,7 @@ def get_ppi_mat(ppi_name='CPDB', drop_rate=0.0, from_list=False, random_seed=42,
     numpy.ndarray
         A ndarray(num_nodes, num_nodes) contains PPI adjacent matrix.
     """
-    prefix = "data" if not pan else "pan_data"
+    prefix = "data" if not pan else f"data/{pan}"
     if reduce:
         ppi_dir = prefix + f"/{ppi_name}/N2V_ppi_embedding_15.csv"
         print(f"Loading PPI feature from {ppi_dir} ......")
@@ -219,7 +221,7 @@ def get_ppi_mat(ppi_name='CPDB', drop_rate=0.0, from_list=False, random_seed=42,
     return data
 
 
-def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False):
+def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False, slice=False):
     """
     Read label data, where some nodes have labels and others do not. For the nodes with labels, change the labels from -1 to 0.
 
@@ -231,6 +233,8 @@ def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False):
     label_dir = data_dir + cell_line
     label_dir += "-Label.txt" if not reverse else "-test-Label.txt"
     data = read_table_to_np(label_dir, dtype=int).transpose()[0]
+    if slice is not False: data = data[slice]
+
     labeled_idx = []
     labels = np.zeros((len(data), 2), dtype=float)
     for i in range(len(data)):
@@ -259,7 +263,7 @@ def get_node_feat(hic_feat=None, data_dir='data/Breast_Cancer_Matrix'):
     cell_line = get_cell_line(data_dir)
     feat = read_table_to_np(data_dir + cell_line +
                             "-Normalized-Nodefeature-Matrix.csv", sep=',')
-    feat = feat[:, :10] if cell_line != "/Pan" else feat
+    feat = feat[:, :10] if cell_line != "/MODIG" else feat
     feat = np.concatenate((feat, hic_feat), axis=1) if hic_feat is not None else feat
     print(f"Feature matrix shape: {feat.shape}")
     pos = np.arange(feat.shape[0])
@@ -333,19 +337,27 @@ class CancerDataset(InMemoryDataset):
         }
 
     def get_feature_dict(self):
-        feature_idx = {'ATAC': [0],
-                       'CTCF': [1, 2, 3],
-                       'H3K4me3': [4, 5],
-                       'H3K27ac': [6, 7],
-                       'SNV': [8],
-                       'CNV': [9],
-                       'Hi-C': [i for i in range(10, self.data.num_node_features)]}
+        if self.data.num_node_features == 15:
+            feature_idx = {'ATAC': [0],
+                        'CTCF': [1, 2, 3],
+                        'H3K4me3': [4, 5],
+                        'H3K27ac': [6, 7],
+                        'SNV': [8],
+                        'CNV': [9],
+                        'Hi-C': [i for i in range(10, self.data.num_node_features)]}
+        elif self.data.num_node_features == 8:
+            feature_idx = {'ATAC': [0],
+                        'CTCF': [1],
+                        'H3K27ac': [2],
+                        'Hi-C': [i for i in range(3, self.data.num_node_features)]}
+            
         for i in range(len(feature_idx['Hi-C'])):
             feature_idx[f'Hi-C-{i+1}'] = [i + feature_idx['Hi-C'][0]]
         for i in range(len(feature_idx['CTCF'])):
             feature_idx[f'CTCF-{i+1}'] = [i + feature_idx['CTCF'][0]]
-        for i in range(len(feature_idx['H3K4me3'])):
-            feature_idx[f'H3K4me3-{i+1}'] = [i + feature_idx['H3K4me3'][0]]
+        if 'H3K4me3' in feature_idx:
+            for i in range(len(feature_idx['H3K4me3'])):
+                feature_idx[f'H3K4me3-{i+1}'] = [i + feature_idx['H3K4me3'][0]]
         for i in range(len(feature_idx['H3K27ac'])):
             feature_idx[f'H3K27ac-{i+1}'] = [i + feature_idx['H3K27ac'][0]]
 
@@ -474,6 +486,7 @@ def get_data(configs, disturb_list=None, stable=True):
     hic_type = configs["hic_type"]
     load_data = configs["load_data"]
     ppi = configs["ppi"]
+    if ppi != 'CPDB': stable = False
     ppi_drop_rate = configs["ppi_drop_rate"]
     random_seed = configs["random_seed"]
     resolution = configs['resolution']
@@ -486,7 +499,7 @@ def get_data(configs, disturb_list=None, stable=True):
             if key not in disturb_list: disturb_list[key] = []
 
     cell_line = get_cell_line(data_dir)
-    pan = cell_line == "/Pan"
+    pan = cell_line[1:] if configs['pan'] else False
 
     def get_dataset_dir(stable):
         if hic_reduce:
@@ -496,6 +509,8 @@ def get_data(configs, disturb_list=None, stable=True):
                 dataset_suffix = f"_{ppi}_dataset_final" if stable else f"_{ppi}_dataset"
         else:
             dataset_suffix = "_dataset_" + configs["graph"] # "dual", "onlyc", "plusc"
+        
+        if configs['joint']: dataset_suffix += "_joint"
 
         dataset_dir = os.path.join(
             data_dir, cell_line[1:] + dataset_suffix + '.pkl')
@@ -519,10 +534,21 @@ def get_data(configs, disturb_list=None, stable=True):
 
     ppi_mat = get_ppi_mat(
         ppi, drop_rate=ppi_drop_rate, from_list=False, random_seed=random_seed, pan=pan) if ppi else None
-
+    
     node_mat, pos = get_node_feat(hic_feat=hic_mat if hic_reduce else None, data_dir=data_dir)
+    node_mat, pos = get_node_feat(None, data_dir=data_dir)
+    
+    if configs['joint']:
+        zero_rows = np.all(ppi_mat == 0, axis=1)
+        zero_cols = np.all(ppi_mat == 0, axis=0)
+        non_zero_rows = ~zero_rows
+        non_zero_cols = ~zero_cols
+        non_zero_idx = np.where(non_zero_rows)[0]
+        ppi_mat = ppi_mat[non_zero_rows][:, non_zero_cols]
+        node_mat = node_mat[non_zero_rows]
+        pos = np.arange(len(non_zero_idx))
 
-    node_lab, labeled_idx = get_label(data_dir, reverse=configs['reverse'])
+    node_lab, labeled_idx = get_label(data_dir, reverse=configs['reverse'], slice=non_zero_idx if configs['joint'] else None)
     labeled_lab = [node_lab[i][1] for i in labeled_idx]
 
     train_idx_list, valid_idx_list = [], []
@@ -559,11 +585,22 @@ if __name__ == "__main__":
     configs = config_load.get()
     args = arg_parse()
     configs["load_data"] = False
+    configs['joint'] = args.joint
+
     if args.reverse:
         configs["reverse"] = True
+
     if args.patient:
         for patient in args.patient:
             configs["data_dir"] = f'data/AML_Matrix/{patient}'
             data = get_data(configs)
         sys.exit()
+
+    if args.pan:
+        configs['data_dir'] = f'data/{args.pan}'
+        configs['cv_folds'] = 5
+        configs['hic'] = False
+        configs['pan'] = True
+        configs['random_seed'] = 41
+
     data = get_data(configs)

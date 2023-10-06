@@ -1,7 +1,6 @@
 batch_size: 256
 cv_folds: 10
 data_dir: data/Breast_Cancer_Matrix
-drop_neg: 0.5
 drop_rate: 0.4
 graph: ppi
 heads: 3
@@ -12,12 +11,14 @@ hic_reduce: svd
 hic_reduce_dim: 5
 hic_type: ice
 hidden_channels: 128
+joint: False
 lr: 0.001
 load_data: True
 log_dir: log
 model: CGMega
 neighbors: [-1, -1]
 num_epochs: 500
+pan: False
 ppi: CPDB
 ppi_attn_drop: 0.1
 ppi_drop_rate: 0
@@ -27,6 +28,9 @@ repeat: 1
 resolution: 10KB
 reverse: False
 sample_rate : 1.0
+sample_pos : 1.0
+sample_neg : 0.5
 stable : True
 out_dir: outs
 wandb: False
+weight_decay: 0.05

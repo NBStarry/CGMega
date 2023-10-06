@@ -209,7 +209,7 @@ def main(args, ckpt, configs, node_list, out_dir, format='png'):
     attn_drop = configs['ppi_attn_drop']
     print("Loading model from {}".format(ckpt))
     model = CGMega(in_channels=dataset[0].num_node_features, hidden_channels=hidden_channels, heads=heads,
-                    drop_rate=drop_rate, attn_drop_rate=attn_drop, edge_dim=1, devices_available=configs['gpu'])  
+                    drop_rate=drop_rate, attn_drop_rate=attn_drop, edge_dim=1, residual=True, devices_available=configs['gpu'])  
     model.load_state_dict(t.load(ckpt)['state_dict'])
     explainer = GATExplainer(model=model, epochs=500, num_hops=2, return_type='prob',)
     task = Batch_Explain(dataset, explainer, node_list, out_dir=out_dir, normalized='sum', patient=True if args.patient else False, format=format)
@@ -260,7 +260,7 @@ if __name__ == "__main__":
                 out_dir = 'explain/MCF7_CPDB'
             main(args=args, ckpt=ckpt, configs=configs, node_list=node_list, out_dir=out_dir, format=args.format)
             
-        except Exception as e: #解决偶发bug
+        except Exception as e: #fix ocassionally occur bug
             print(e)
             time.sleep(5)
             print("Retrying...")

@@ -27,7 +27,6 @@ convert_map = {
     "Display": bool,
     "batch_size": int,
     "cv_folds": int,
-    "drop_neg": float,
     "drop_rate": float,
     "gpu": parse_gpu,
     "heads": int,
@@ -44,6 +43,8 @@ convert_map = {
     "random_seed": int,
     "repeat": int,
     "sample_rate" : float,
+    "sample_neg": float,
+    "sample_pos": float,
     "wandb": bool,
 }
 

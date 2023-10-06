@@ -46,7 +46,7 @@ def sum_norm(input, axis=1):
     return input / axis_sum
 
 def get_all_nodes(pan=False):
-    dir = "data/Gene-Name.txt" if not pan else "pan_data/Gene-Name.txt"
+    dir = "data/Gene-Name.txt" if not pan else f"data/{pan}/Gene-Name.txt"
     with open(dir) as f:
         txt = f.readlines()
     gene_list = [line.strip() for line in txt[1:]]  # skip the first line

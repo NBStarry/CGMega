@@ -28,12 +28,15 @@ def arg_parse():
                         help="change origin Hi-C matrix", action="store_true")
     parser.add_argument('-cv, "--cross_validation', dest="cv",
                         help="use cross validation", action="store_true")
+    parser.add_argument('-d', "--down_sample", dest="ds", action="store_true")
     parser.add_argument('-f', "--finetune", dest='finetune', help="finetune", action="store_true")
     parser.add_argument('-g', "--gpu", dest="gpu", default=None)
     parser.add_argument('-hg', "--hic_graph", dest="hic_graph", help="construct graph with hic", action="store_true")
     parser.add_argument('-hr', "--hic_reduce", dest="hic_reduce", help="change hic reduction method", action="store_true")
+    parser.add_argument('-j', '--joint', dest='joint', help="to use joint data", action="store_true")
     parser.add_argument('-l', "--load", dest="load", help="load data", action="store_true")
     parser.add_argument('-p', "--predict", dest='pred', help="predict all nodes", action="store_true")
+    parser.add_argument('--pan', dest='pan', default=False)
     parser.add_argument('-pt', "--patient", dest='patient', help="Patient ID", default=None, nargs='*')
     parser.add_argument('-r', "--reverse", dest="reverse", action='store_true')
     return parser.parse_args()
@@ -77,31 +80,31 @@ def drop_samples(dataset, fold, sample_neg=0., sample_pos=1., num_samples=0, ran
 def get_model(params, dataset):
     if params["model"] == "DualGATRes":
         model = DualGATRes2(dataset["ppi"].num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
-                            drop_rate=params["drop_rate"], hic_attn_drop_rate=params['ppi_attn_drop'], ppi_attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset["hic"][0].edge_dim, devices_available=params["gpu"])
+                            drop_rate=params["drop_rate"], hic_attn_drop_rate=params['ppi_attn_drop'], ppi_attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset["hic"][0].edge_dim, devices_available=params["device"])
         
     elif params["model"] == "CGMega":
         model = CGMega(in_channels=dataset.num_node_features, hidden_channels=params['hidden_channels'], heads=params['heads'],
-                    drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["gpu"])
+                    drop_rate=params['drop_rate'], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, residual=True, devices_available=params["device"])
     
     elif params["model"] == "GCN":
-        model = GCN(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
-                    drop_rate=params["drop_rate"], devices_available=params["gpu"])
+        model = GCN(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"],
+                    drop_rate=params["drop_rate"], devices_available=params["device"])
     
     elif params["model"] == "GAT":
         model = GAT(in_channels=dataset.num_node_features, hidden_channels=params["hidden_channels"], heads=params["heads"],
-                    drop_rate=params["drop_rate"], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["gpu"])
+                    drop_rate=params["drop_rate"], attn_drop_rate=params['ppi_attn_drop'], edge_dim=dataset[0].edge_dim, devices_available=params["device"])
     
     elif "MLP" in params["model"]:
-        model = MLP(in_channels=dataset.num_node_features, drop_rate=params["drop_rate"], devices_available=params["gpu"])
+        model = MLP(in_channels=dataset.num_node_features, drop_rate=params["drop_rate"], devices_available=params["device"])
     
     elif "SVM" in params["model"]:
         model = SVM(C=1.0, gamma='scale', kernel='poly')
     
     elif params["model"] == "EMOGI":
-        model = EMOGI(in_channels=dataset.num_node_features, drop_rate=0.5, pos_loss_multiplier=45.0, hidden_dims=[300, 100], devices_available=params["gpu"])
+        model = EMOGI(in_channels=dataset.num_node_features, drop_rate=0.5, pos_loss_multiplier=45.0, hidden_dims=[300, 100], devices_available=params["device"])
 
     elif params["model"] == "MTGCN":
-        model = MTGCN(in_channels=dataset.num_node_features, hidden_dims=[300, 100], devices_available=params["gpu"])
+        model = MTGCN(in_channels=dataset.num_node_features, hidden_dims=[300, 100], devices_available=params["device"])
 
     return model
 
@@ -114,14 +117,14 @@ def get_training_modules(params, dataset, pred=False):
         loss_func = torch.nn.BCELoss()
 
     fold = params["fold"]
-    params["drop_neg"] = 0. if pred else params["drop_neg"]
-    print("Drop ", params['drop_neg'], "of negative train samples")
+    params["sample_neg"] = 1. if pred else params["sample_neg"]
+    print("Drop ", 1 - params['sample_neg'], "of negative train samples and ", 1 - params['sample_pos'], "of positive train samples")
     if isinstance(dataset, dict):
-        drop_idx = drop_samples(dataset["hic"], fold, sample_neg=(
-            1 - params['drop_neg']), random_seed=params['random_seed'])
+        drop_idx = drop_samples(dataset["hic"], fold, sample_neg=
+            params['sample_neg'], sample_pos=params['sample_pos'], random_seed=params['random_seed'])
     else:
-        drop_idx = drop_samples(dataset, fold, sample_neg=(
-            1 - params['drop_neg']), random_seed=params['random_seed'])
+        drop_idx = drop_samples(dataset, fold, sample_neg=
+            params['sample_neg'], sample_pos=params['sample_pos'], random_seed=params['random_seed'])
     if params["sample_rate"] < 1:
         print("Drop ", (1 - params['sample_rate']), "of train samples")
         drop_idx += drop_samples(dataset, fold, params['sample_rate'], params['sample_rate'], params['random_seed'])
@@ -162,8 +165,8 @@ def get_training_modules(params, dataset, pred=False):
 
     elif params["model"] == "CGMega":
         optimizer = t.optim.AdamW([
-            dict(params=model.convs.parameters(), weight_decay=0.05),
-            dict(params=model.lins.parameters(), weight_decay=0.05)
+            dict(params=model.convs.parameters(), weight_decay=params['weight_decay']),
+            dict(params=model.lins.parameters(), weight_decay=params['weight_decay'])
         ], lr=params['lr'])
 
     elif "SVM" in params["model"]:
@@ -374,7 +377,7 @@ def train(model, fold, train_loader_list, valid_loader_list, optimizer, devices,
 def train_model(modules, params, log_name, fold, head_info=False):
     fold = params["fold"]
     logfile = params['logfile']
-    devices = params['gpu']
+    devices = params["device"]
     dataset = modules['dataset']
     model = modules['model']
     loader_list = modules['train_loader_list']
@@ -475,7 +478,7 @@ def train_model(modules, params, log_name, fold, head_info=False):
 
 
 def predict(model, loader_list, params, ckpt, labeled=True):
-    devices = params['gpu']
+    devices = params["device"]
     print(f"Loading model from {ckpt} ......")
     model.load_state_dict(t.load(ckpt)['state_dict'])
     model.eval()
@@ -498,9 +501,9 @@ def predict(model, loader_list, params, ckpt, labeled=True):
         pred_lab[out > 0.5] = 1
         pred_lab = pred_lab.to(devices)
         if y_score.size == 0:
-            y_score = out.cpu().detach()
+            y_score = out.cpu().detach().numpy()
         else:
-            y_score = np.append(y_score, out.cpu().detach(), axis=0)
+            y_score = np.append(y_score, out.cpu().detach().numpy(), axis=0)
         y_pred = np.append(y_pred, pred_lab.cpu().detach().numpy())
         y_index = np.append(y_index, index.cpu().detach().numpy())
 
@@ -598,7 +601,12 @@ def cv_train(args, configs, disturb=None):
 def predict_all(args, configs):
     dataset = get_data(configs=configs)
     num_folds = configs["cv_folds"]
-    ckpt_path = "./predict/models/MCF7_Hi-C/" if not args.patient else f"./predict/models/AML/{configs['patient']}"
+
+    if not args.patient:
+        ckpt_path = "./predict/models/MCF7_Hi-C/" if configs['hic'] else './predict/models/MCF7_PPI/'
+    else: 
+        ckpt_path = f"./predict/models/AML/{configs['patient']}"
+        if not configs['hic']: ckpt_path += 'wohic'
     ckpt_path += '_r/' if args.reverse else '/'
     checkpoint = os.listdir(ckpt_path)
     known_result, unknown_result = [], []
@@ -642,13 +650,26 @@ def down_sample_migrate(args, configs):
                 cv_train(args, configs)
 
 
+def down_sample_train(args, configs):
+    configs['data_dir'] = "data/Leukemia_Matrix"
+    sample_list = [(1, 0.33), (0.67, 0.43), (0.5, 0.49), (0.4, 0.52), (0.33, 0.54), (0.28, 0.56), (0.25, 0.57), (0.22, 0.58), (0.2, 0.59)]
+    for model in ['GCN', 'GAT', 'MTGCN', 'EMOGI']:
+        configs['model'] = model
+        for sample_rate in sample_list:
+            configs['sample_pos'] = sample_rate[0]
+            configs['sample_neg'] = sample_rate[1]
+            configs['log_name'] = f"k562_{model}_sample_{sample_rate[0]}_{sample_rate[1]}"
+            configs['logfile'] = os.path.join(configs['log_dir'], configs['log_name'] + '.txt')
+            cv_train(args, configs)
+
+
 def hic_graph(args, configs):
     configs["stable"] = False
     configs["graph"] = "dual" # "dual", "onlyc", "plusc"
     for norm in ['binary']:
         configs["hic_norm"] = norm
-        configs["log_name"] = f"/mcf7_hic_{norm}_{configs['graph']}_graph"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+        configs["log_name"] = f"mcf7_hic_{norm}_{configs['graph']}_graph"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         configs["ppi"] = "CPDB"
         configs["load_data"] = True
         cv_train(args, configs)
@@ -659,37 +680,62 @@ def ways_of_reduction(args, configs):
     configs["hic_reduce"] = "t-sne"
     for i in [1, 2, 3]:
         configs["hic_reduce_dim"] = i
-        configs["log_name"] = "/mcf7_hic_" + configs["hic_reduce"] + f"_{i}"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+        configs["log_name"] = "mcf7_hic_" + configs["hic_reduce"] + f"_{i}"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         cv_train(args, configs)
 
 
 def run_benchmark(args, configs):
-    for model in ["MTGCN", "EMOGI", "GCN", "GAT", 'N2V_MLP', 'N2V_SVM']:
-        configs["model"] = model
-        configs["log_name"] = f"/mcf7_{model}" if configs['hic'] else f"/mcf7_{model}(woH)"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
-        disturb = {'add': ['PPI']} if 'N2V' in model else None
-        cv_train(args, configs, disturb)
+    for ppi in ["Multinet"]:
+        configs["ppi"] = ppi
+        for model in ["EMOGI", "MTGCN", "GCN", "GAT"]: # 'N2V_MLP', 'N2V_SVM'
+            configs["model"] = model
+            configs["log_name"] = f"mcf7_{model}" if configs['hic'] else f"mcf7_{model}(woH)"
+            configs["log_name"] += f"_{ppi}" if configs["ppi"] != "CPDB" else ""
+            configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
+            disturb = {'add': ['PPI']} if 'N2V' in model else None
+            cv_train(args, configs, disturb)
+
 
 def patient_train(args, configs):
     print(args.patient)
+    configs['hic'] = False
     for patient in args.patient:
         configs['data_dir'] = f'data/AML_Matrix/{patient}'
-        configs["log_name"] = f"/{configs['data_dir'].split('/')[-1]}"
-        configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+        configs["log_name"] = f"{configs['data_dir'].split('/')[-1]}"
+        configs["log_name"] += 'wohic' if not configs['hic'] else ''
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
         cv_train(args, configs)
-    
+
+
+def pan_train(args, configs):
+    print(f"Training {args.pan} dataset.")
+    for ppi in ['STRING', 'irefindex', 'Mentha', 'BioPlex', 'CPDB_v34', 'HINT', 'HumanNet', 'InBioMap', 'IntAct']:  
+        configs['ppi'] = ppi
+        configs['data_dir'] = f'data/{args.pan}'
+        configs['stable'] = False
+        configs['pan'] = True
+        configs['cv_folds'] = 5
+        configs['log_name'] = f"{configs['data_dir'].split('/')[-1]}_{configs['model']}_{configs['ppi']}"
+        configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
+        configs['lr'] = 0.0001
+        configs['neighbors'] = [40,10]
+        cv_train(args, configs)
 
 def main(args, configs):
     if args.pred:
-        for patient in args.patient:
-            configs['patient'] = patient
-            configs['data_dir'] = f'data/AML_Matrix/{patient}'
+        if args.patient is not None:
+            configs['hic'] = False
+            for patient in args.patient:
+                configs['patient'] = patient
+                configs['data_dir'] = f'data/AML_Matrix/{patient}'
+                predict_all(args, configs)
+        else:
             predict_all(args, configs)
 
     elif args.hic_graph:
         hic_graph(args, configs)
+
     elif args.hic_reduce:
         ways_of_reduction(args, configs)
 
@@ -697,8 +743,8 @@ def main(args, configs):
         configs["stable"] = False
         for i in [1, 2, 5, 10]:
             configs["hic_reduce_dim"] = i
-            configs["log_name"] = "/mcf7_hic_" + configs["hic_type"] + f"_{i}"
-            configs["logfile"] = configs["log_dir"] + configs["log_name"] + ".txt"
+            configs["log_name"] = "mcf7_hic_" + configs["hic_type"] + f"_{i}"
+            configs["logfile"] = os.path.join(configs["log_dir"], configs["log_name"] + ".txt")
             cv_train(args, configs)
 
     elif args.bm:
@@ -706,6 +752,12 @@ def main(args, configs):
 
     elif args.patient:
         patient_train(args, configs)
+
+    elif args.pan:
+        pan_train(args, configs)
+
+    elif args.ds:
+        down_sample_train(args, configs)
 
     else:
         configs["log_name"] = f"{get_cell_line(configs['data_dir'])[1:]}_{configs['ppi']}"
@@ -718,7 +770,8 @@ if __name__ == "__main__":
     args = arg_parse()
     gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
     configs["device"] = gpu
-    configs['load_data'] = args.load_data
+    configs['load_data'] = args.load
+    configs['joint'] = args.joint
     if args.reverse:
         configs["reverse"] = True
     main(args, configs)
