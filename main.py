@@ -601,7 +601,12 @@ def cv_train(args, configs, disturb=None):
 def predict_all(args, configs):
     dataset = get_data(configs=configs)
     num_folds = configs["cv_folds"]
-    ckpt_path = "./predict/models/MCF7_Hi-C/" if not args.patient else f"./predict/models/AML/{configs['patient']}"
+
+    if not args.patient:
+        ckpt_path = "./predict/models/MCF7_Hi-C/" if configs['hic'] else './predict/models/MCF7_PPI/'
+    else: 
+        ckpt_path = f"./predict/models/AML/{configs['patient']}"
+        if not configs['hic']: ckpt_path += 'wohic'
     ckpt_path += '_r/' if args.reverse else '/'
     checkpoint = os.listdir(ckpt_path)
     known_result, unknown_result = [], []
@@ -719,9 +724,13 @@ def pan_train(args, configs):
 
 def main(args, configs):
     if args.pred:
-        for patient in args.patient:
-            configs['patient'] = patient
-            configs['data_dir'] = f'data/AML_Matrix/{patient}'
+        if args.patient is not None:
+            configs['hic'] = False
+            for patient in args.patient:
+                configs['patient'] = patient
+                configs['data_dir'] = f'data/AML_Matrix/{patient}'
+                predict_all(args, configs)
+        else:
             predict_all(args, configs)
 
     elif args.hic_graph:
