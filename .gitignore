@@ -19,6 +19,7 @@ data/Multinet/*
 data/MODIG/*
 data/additional_explain.txt
 data/Results/*
+data/omics/*
 
 outs/*
 log/*
