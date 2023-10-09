@@ -29,4 +29,5 @@ predict/*
 !data/Breast_Cancer_Matrix/MCF7_CPDB_dataset_final.pkl
 !data/Breast_Cancer_Matrix/MCF7-Label.txt
 !data/Breast_Cancer_Matrix/MCF7_Hi-C_Ice
+!data/Breast_Cancer_Matrix/MCF7-Normalized-Nodefeature-Matrix.csv
 !predict/AML/018/018_0.97+.csv
