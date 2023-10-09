@@ -27,7 +27,7 @@ git clone https://github.com/NBStarry/CGMega.git
 
 To verify a successful installation, just run:
 ```
-python main.py  # Importing the relevant libraries may take a few minutes.
+python main.py -cv -l  # Importing the relevant libraries may take a few minutes.
 ```
 
 ## Tutorial
