@@ -10,7 +10,7 @@ RUN pip install torch_scatter -f https://data.pyg.org/whl/torch-1.10.0+cu113.htm
 
 RUN pip install torch_sparse==0.6.12 -f https://data.pyg.org/whl/torch-1.10.0+cu113.html
 
-RUN pip install torch_geometric==2.0.3 transformers wandb
+RUN pip install torch_geometric==2.0.3 transformers wandb matplotlib 
 
 COPY ./ /CGMega/
 
