@@ -122,10 +122,11 @@ class Single_Node_Explain():
             feat_mask = feat_mask.cpu().detach().numpy().reshape(1, -1)
             self.save_feat_mask(feat_mask, out_name)
 
-            if self.viz_subgraph and (edge_mask is not None):
-                self.generate_subgraph(edge_index, edge_mask, pred_y, out_name)
             if edge_mask is not None:
                 self.save_edge_mask(edge_index, edge_list, out_name)
+
+            if self.viz_subgraph and (edge_mask is not None):
+                self.generate_subgraph(edge_index, edge_mask, pred_y, out_name)
 
         return feat_mask
 
