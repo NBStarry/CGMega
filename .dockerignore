@@ -12,8 +12,6 @@ data/Breast_Cancer_Matrix/*
 data/Breast_Cancer_Matrix/MCF7_Adjacent_Matrix_Ice
 data/Breast_Cancer_Matrix/MCF7-Normalized-Nodefeature-Matrix.csv
 data/Breast_Cancer_Matrix/MCF7_CPDB_dataset.pkl
-data/Breast_Cancer_Matrix/MCF7_Hi-C_Ice
-data/CPDB/CPDB_matrix.csv
 data/Multiomics/*
 data/Multinet/*
 data/MODIG/*

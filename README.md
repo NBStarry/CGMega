@@ -11,8 +11,11 @@ We recommend using conda to configure the code runtime environment, this could t
 ```
 conda create -n cgmega python=3.8.12
 conda install pytorch==1.9.1 -c pytorch
-pip install torch_geometric==2.0.3 transformers wandb
+pip install torch_geometric==2.0.3 transformers wandb jupyter
+pip install torch_scatter -f https://data.pyg.org/whl/torch-1.9.1+cu113.html
+pip install torch_sparse==0.6.12 -f https://data.pyg.org/whl/torch-1.9.1+cu113.html
 ```
+Install commmands of torch_scatter and torch_sparse should be adjusted according to pytorch and cuda version, see [PyG 2.0.3 Installation](https://pytorch-geometric.readthedocs.io/en/2.0.3/notes/installation.html)
 
 ## Installation
 We recommend getting CGMega using Git from our Github repository through the following command:
