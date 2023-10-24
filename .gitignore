@@ -13,6 +13,9 @@ data/CPDB/CPDB_matrix.csv
 data/Multiomics/*
 data/Multinet/*
 data/MODIG/*
+data/PCNet/*
+data/STRING/*
+data/IRef/*
 data/additional_explain.txt
 data/Results/*
 data/omics/*
