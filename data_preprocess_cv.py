@@ -233,7 +233,7 @@ def get_label(data_dir='data/Breast_Cancer_Matrix', reverse=False, slice=False):
     label_dir = data_dir + cell_line
     label_dir += "-Label.txt" if not reverse else "-test-Label.txt"
     data = read_table_to_np(label_dir, dtype=int).transpose()[0]
-    if slice is not False: data = data[slice]
+    if slice: data = data[slice]
 
     labeled_idx = []
     labels = np.zeros((len(data), 2), dtype=float)
@@ -536,7 +536,7 @@ def get_data(configs, disturb_list=None, stable=True):
         ppi, drop_rate=ppi_drop_rate, from_list=False, random_seed=random_seed, pan=pan) if ppi else None
     
     node_mat, pos = get_node_feat(hic_feat=hic_mat if hic_reduce else None, data_dir=data_dir)
-    node_mat, pos = get_node_feat(None, data_dir=data_dir)
+    # node_mat, pos = get_node_feat(None, data_dir=data_dir)
     
     if configs['joint']:
         zero_rows = np.all(ppi_mat == 0, axis=1)
