@@ -114,7 +114,7 @@ def get_training_modules(params, dataset, pred=False):
         loss_func = torch.nn.BCEWithLogitsLoss()
 
     else:
-        loss_func = torch.nn.BCELoss()
+        loss_func = torch.nn.BCELoss()  
 
     fold = params["fold"]
     params["sample_neg"] = 1. if pred else params["sample_neg"]
@@ -488,14 +488,19 @@ def predict(model, loader_list, params, ckpt, labeled=True):
     y_pred = np.array([])
     y_score = np.array([])
     y_index = np.array([])
+    edge_weight_1 = []
+    egde_weight_2 = []
+    edge_index_1 = []
+    edge_index_2 = []
 
     for data in zip(*loader_list):
         size = data[0].batch_size
         with t.no_grad():
-            out = model(data)
+            out, weight1, weight2 = model(data)
+            # print(weight1)
             out = out[0][:size] if isinstance(model, MTGCN) else out[:size]
         out = t.squeeze(out)
-        index = data[0].pos[:size]
+        index = data[0].pos#[:size]
         true_lab = data[0].y[:size][:, 1].to(devices) if labeled else None
         pred_lab = t.zeros(size)
         pred_lab[out > 0.5] = 1
@@ -506,11 +511,14 @@ def predict(model, loader_list, params, ckpt, labeled=True):
             y_score = np.append(y_score, out.cpu().detach().numpy(), axis=0)
         y_pred = np.append(y_pred, pred_lab.cpu().detach().numpy())
         y_index = np.append(y_index, index.cpu().detach().numpy())
-
         y_true = np.append(y_true, true_lab.cpu().detach().numpy()) if labeled else None
+        edge_index_1.append(weight1[0].cpu().detach())
+        edge_index_2.append(weight2[0].cpu().detach())
+        edge_weight_1.append(weight1[1].cpu().detach())
+        egde_weight_2.append(weight2[1].cpu().detach())
 
 
-    return y_score, y_pred, y_true, y_index
+    return y_score, y_pred, y_true, y_index, edge_weight_1, egde_weight_2, edge_index_1, edge_index_2
 
 
 def pred_to_df(i, result, y_index, y_true, y_score):
@@ -768,6 +776,8 @@ def main(args, configs):
 if __name__ == "__main__":
     configs = config_load.get()
     args = arg_parse()
+    configs['hic'] = False
+    configs['data_dir'] = 'data/Breast_Cancer_Matrix'
     gpu = f"cuda:{args.gpu}" if args.gpu else 'cpu'
     configs["device"] = gpu
     configs['load_data'] = args.load

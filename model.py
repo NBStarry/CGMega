@@ -89,15 +89,15 @@ class CGMega(t.nn.Module):
         edge_index, edge_attr = dropout_adj(data.edge_index, data.edge_attr, p=self.drop_rate, force_undirected=True,
                                             training=self.training)
         res = x
-        x = self.convs[0](x, edge_index, edge_attr)
+        x, weight_1 = self.convs[0](x, edge_index, edge_attr, return_attention_weights=True)
         x = F.leaky_relu(x, negative_slope=LEAKY_SLOPE, inplace=True)
         x = t.cat((x, res), dim=1) if self.residual else x
         x = self.ln1(x)
 
         edge_index, edge_attr = dropout_adj(data.edge_index, data.edge_attr, p=self.drop_rate, force_undirected=True,
                                             training=self.training)
-        x = self.convs[1](x.to(self.devices_available), edge_index.to(
-            self.devices_available), edge_attr.to(self.devices_available))
+        x, weight_2 = self.convs[1](x.to(self.devices_available), edge_index.to(
+            self.devices_available), edge_attr.to(self.devices_available), return_attention_weights=True)
         x = self.ln2(x)
         x = F.leaky_relu(x, negative_slope=LEAKY_SLOPE)
         x = t.unsqueeze(x, 1)
@@ -107,7 +107,7 @@ class CGMega(t.nn.Module):
         x = self.dropout(x)
         x = self.lins[1](x)
 
-        return t.sigmoid(x)
+        return t.sigmoid(x), weight_1, weight_2
 
 
 class GATModule(t.nn.Module):
