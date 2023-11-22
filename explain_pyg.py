@@ -211,7 +211,7 @@ def main(args, ckpt, configs, node_list, out_dir, format='png'):
     print("Loading model from {}".format(ckpt))
     model = CGMega(in_channels=dataset[0].num_node_features, hidden_channels=hidden_channels, heads=heads,
                     drop_rate=drop_rate, attn_drop_rate=attn_drop, edge_dim=1, residual=True, devices_available=configs['gpu'])  
-    model.load_state_dict(t.load(ckpt)['state_dict'])
+    model.load_state_dict(t.load(ckpt, map_location=t.device(configs['gpu']))['state_dict'])
     explainer = GATExplainer(model=model, epochs=500, num_hops=2, return_type='prob',)
     task = Batch_Explain(dataset, explainer, node_list, out_dir=out_dir, normalized='sum', patient=True if args.patient else False, format=format)
     drawer = Visualizer(node_list=node_list, out_dir=out_dir, fig_name='important_genes', label=task.label)

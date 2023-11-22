@@ -480,7 +480,7 @@ def train_model(modules, params, log_name, fold, head_info=False):
 def predict(model, loader_list, params, ckpt, labeled=True):
     devices = params["device"]
     print(f"Loading model from {ckpt} ......")
-    model.load_state_dict(t.load(ckpt)['state_dict'])
+    model.load_state_dict(t.load(ckpt, map_location=model.devices_available)['state_dict'])
     model.eval()
 
     y_true = np.array([]) if labeled else None
@@ -558,7 +558,7 @@ def cv_train(args, configs, disturb=None):
                 modules = get_training_modules(configs, dataset)
                 if args.finetune:
                     print(f"Loading model from {ckpt} ......")
-                    modules["model"].load_state_dict(t.load(ckpt)['state_dict'])
+                    modules["model"].load_state_dict(t.load(ckpt, map_location=configs['device'])['state_dict'])
                 auprc, auc, acc, f1, tp, new_ckpt = train_model(
                     modules, configs, log_name, i, head_info,)
                 sum_auprc.append(auprc)
@@ -584,7 +584,7 @@ def cv_train(args, configs, disturb=None):
             modules = get_training_modules(configs, dataset)
             if args.finetune:
                 print(f"Loading model from {ckpt} ......")
-                modules["model"].load_state_dict(t.load(ckpt)['state_dict'])
+                modules["model"].load_state_dict(t.load(ckpt, map_location=configs['device'])['state_dict'])
             auprc, auc, acc, f1, tp, new_ckpt = train_model(
                 modules, configs, log_name, configs['fold'], head_info)
             head_info = False
