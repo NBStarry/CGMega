@@ -2,6 +2,7 @@ __pycache__
 .DS_store
 *.zip
 .ipynb_checkpoints
+test.ipynb
 
 explain/MCF7_CPDB/*
 explain/AML/*
