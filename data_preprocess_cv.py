@@ -468,7 +468,7 @@ def post_process(dataset, configs, disturb_list=None):
         if configs["ppi_drop_rate"]:
             print("Dropping PPI edges ......")
             dataset.network_disturb(configs["ppi_drop_rate"], random_seed)
-        if hic_needed_update(configs):
+        if configs["hic"] and hic_needed_update(configs):
             print("Updating Hi-C for experimental need ......")
             dataset.update_hic(configs)
         if disturb_list is not None:

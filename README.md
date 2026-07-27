@@ -1,10 +1,15 @@
 # CGMega
+
+> **Project status: archived / no longer maintained**
+>
+> CGMega is preserved as a research artifact. The maintainers no longer provide compatibility updates, bug fixes, or user support. The original environment, Docker image, data, and tutorial are preserved on [Zenodo](https://zenodo.org/records/10086978). Forks are welcome under the repository license.
+
 CGMega is a graph attention-based deep learning framework for cancer gene module dissection. CGMega leverages a combination of multi-omics data cross genome, epigenome, proteome and especially three-dimension (3D) genome levels.
 
-CGMega was written in Python 3.8, and should run on any OS that support pytorch and pyg. Training is faster on a GPU with at least 24G memory to reproduce our results.
+CGMega was developed with Python 3.8 and the pinned PyTorch/PyG versions shown below. Compatibility with current package versions is not maintained. Training is faster on a GPU with at least 24G memory to reproduce our results.
 
 ## Documentation
-CGMega documentation is available through [Documentation](https://sunyolo.github.io/CGMega.github.io/).
+The most complete preserved usage materials are the [Tutorial notebook](https://github.com/NBStarry/CGMega/blob/main/Tutorial.ipynb) and the [Docker tutorial and environment on Zenodo](https://zenodo.org/records/10086978). The historical documentation website is no longer maintained and may contain incomplete or ambiguous preprocessing steps.
 
 ## Conda Environment
 We recommend using conda to configure the code runtime environment, this could take 10-30 minutes:
@@ -23,7 +28,7 @@ We recommend getting CGMega using Git from our Github repository through the fol
 ```
 git clone https://github.com/NBStarry/CGMega.git
 ```
->The software package of CGMega is still under testing. We are going to release a stable version in the near future.
+> This repository represents the final historical research snapshot. No new stable release or compatibility update is planned.
 
 To verify a successful installation, just run:
 ```
@@ -165,7 +170,7 @@ The above table reports our computing details during CGMega development and IS N
 
 If your computer does not satisfy the above, you may try to lower down the memory used during model training by reduce the sampling parameters, the batch size or so on. 
 
-We are going to test CGMega under more scenarios like with different models of GPU or memory limits to update this table.
+This table is retained as a record of the original development environment and will not be updated.
 
 ```
 ## Interpretation
@@ -203,7 +208,12 @@ In brief, BRCA1, as a pleiotropic DDR protein working in broad stages of DNA dam
 In contrast, BRCA2, as the mediator of the core mechanism of homologous recombination (HR), was connected with other genes via ROCK2, an important gene that directly mediates HR repair.
 Moreover, SNV was the RF for both BRCA1 and BRCA2. We also observed a high-order gene module combined from BRCA1 gene module and BRCA2 gene module through three shared genes including TP53, SMAD3 and XPO1.
 
+## Citation and preserved artifacts
+
+- Paper / preprint DOI: [10.21203/rs.3.rs-3180743/v1](https://doi.org/10.21203/rs.3.rs-3180743/v1)
+- Preserved Docker image, data, and tutorial: [Zenodo record 10086978](https://zenodo.org/records/10086978)
+
 ![image](https://github.com/NBStarry/CGMega/blob/main/img/example.png)
 
-## Questions and Code Issues
-If you are having problems with our work, please use the [Github issue page](https://github.com/NBStarry/CGMega/issues).
+## Support
+This repository is not monitored for support. Existing issues are retained only as part of the historical record.
